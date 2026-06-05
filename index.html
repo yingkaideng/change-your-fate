@@ -1,0 +1,3348 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>命盘 · Destiny Chart</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1410;
+  --paper: #f5f0e8;
+  --gold: #b8922a;
+  --gold-light: #e8d5a0;
+  --red: #8b2020;
+  --fade: #8a7d6a;
+  --line: #d4c9b0;
+  --wood: #4a7c59;
+  --fire: #8b3a1a;
+  --earth: #7a6030;
+  --metal: #5a5a6a;
+  --water: #2a4a7a;
+  --white: #faf8f3;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Noto Serif SC', serif;
+  min-height: 100vh;
+  background-image: 
+    radial-gradient(ellipse at 20% 10%, rgba(184,146,42,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(139,32,32,0.04) 0%, transparent 50%);
+}
+
+/* HEADER */
+.header {
+  text-align: center;
+  padding: 3rem 1rem 2rem;
+  border-bottom: 0.5px solid var(--line);
+  position: relative;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 2px;
+  background: var(--gold);
+}
+.logo-zh { font-size: 2.2rem; font-weight: 300; letter-spacing: 0.5em; color: var(--ink); }
+.logo-en { font-family: 'EB Garamond', serif; font-style: italic; font-size: 1rem; color: var(--fade); letter-spacing: 0.15em; margin-top: 0.3rem; }
+.tagline { font-size: 0.75rem; color: var(--fade); margin-top: 0.8rem; letter-spacing: 0.2em; font-family: 'Noto Sans SC', sans-serif; font-weight: 300; }
+
+/* LANG SWITCH */
+.lang-switch {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.lang-btn {
+  padding: 4px 12px;
+  border: 0.5px solid var(--line);
+  background: transparent;
+  color: var(--fade);
+  font-size: 0.75rem;
+  cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif;
+  transition: all 0.2s;
+}
+.lang-btn.active { background: var(--gold); color: var(--white); border-color: var(--gold); }
+
+/* FORM */
+.form-wrap {
+  max-width: 560px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+}
+.form-title { font-size: 1rem; letter-spacing: 0.3em; color: var(--fade); margin-bottom: 2rem; text-align: center; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.form-full { grid-column: 1/-1; }
+.field { display: flex; flex-direction: column; gap: 0.4rem; }
+.field label { font-size: 0.72rem; letter-spacing: 0.2em; color: var(--fade); font-family: 'Noto Sans SC', sans-serif; }
+.field input, .field select {
+  padding: 0.7rem 1rem;
+  border: 0.5px solid var(--line);
+  background: var(--white);
+  color: var(--ink);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.field input:focus, .field select:focus { border-color: var(--gold); }
+.select-wrap { position: relative; }
+.select-wrap::after {
+  content: '▾';
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--fade);
+  pointer-events: none;
+  font-size: 0.8rem;
+}
+.calc-btn {
+  width: 100%;
+  padding: 1rem;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.4em;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.calc-btn:hover { background: var(--gold); }
+.calc-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform 0.4s;
+}
+.calc-btn:hover::after { transform: translateX(100%); }
+
+/* RESULT AREA */
+.result { max-width: 700px; margin: 0 auto 4rem; padding: 0 1.5rem; display: none; }
+.result.show { display: block; }
+
+/* TAB */
+.tab-bar {
+  display: flex;
+  border-bottom: 0.5px solid var(--line);
+  margin-bottom: 2rem;
+  gap: 0;
+}
+.tab-btn {
+  padding: 0.8rem 1.5rem;
+  background: none;
+  border: none;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 0.85rem;
+  color: var(--fade);
+  cursor: pointer;
+  letter-spacing: 0.15em;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.tab-btn.active { color: var(--ink); border-bottom-color: var(--gold); }
+
+/* SECTION */
+.tab-sec { display: none; }
+.tab-sec.on { display: block; }
+
+/* DEPTH TOGGLE */
+.depth-toggle {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+}
+.depth-btn {
+  padding: 4px 14px;
+  border: 0.5px solid var(--line);
+  background: transparent;
+  color: var(--fade);
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  font-family: 'Noto Sans SC', sans-serif;
+  transition: all 0.2s;
+}
+.depth-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* BAZI PILLARS */
+.pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border: 0.5px solid var(--line);
+  margin-bottom: 2rem;
+}
+.pillar {
+  border-right: 0.5px solid var(--line);
+  padding: 1.5rem 0.5rem;
+  text-align: center;
+  position: relative;
+}
+.pillar:last-child { border-right: none; }
+.pillar.day-pillar { background: rgba(184,146,42,0.04); }
+.pillar-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--fade);
+  margin-bottom: 1rem;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.pillar-char {
+  font-size: 2.2rem;
+  font-weight: 300;
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+.pillar-wx {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  margin-top: 0.5rem;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.day-mark {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  font-size: 0.6rem;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+}
+.c-wood { color: var(--wood); }
+.c-fire { color: var(--fire); }
+.c-earth { color: var(--earth); }
+.c-metal { color: var(--metal); }
+.c-water { color: var(--water); }
+
+/* WX BARS */
+.wx-section { margin-bottom: 2rem; }
+.wx-title { font-size: 0.72rem; letter-spacing: 0.25em; color: var(--fade); margin-bottom: 1rem; font-family: 'Noto Sans SC', sans-serif; }
+.wx-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.6rem; }
+.wx-name { width: 1.5rem; font-size: 0.9rem; text-align: center; }
+.wx-bar-bg { flex: 1; height: 6px; background: var(--line); position: relative; }
+.wx-bar-fill { height: 100%; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+.wx-count { font-size: 0.75rem; color: var(--fade); width: 2rem; text-align: right; font-family: 'Noto Sans SC', sans-serif; }
+.wx-missing { font-size: 0.65rem; color: var(--red); margin-left: 0.3rem; }
+
+/* INTERPRETATION */
+.interp-block {
+  border-left: 2px solid var(--gold-light);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+  background: rgba(184,146,42,0.02);
+}
+.interp-title { font-size: 0.75rem; letter-spacing: 0.2em; color: var(--gold); margin-bottom: 0.5rem; font-family: 'Noto Sans SC', sans-serif; }
+.interp-body { font-size: 0.88rem; line-height: 1.9; color: var(--ink); font-weight: 300; }
+.interp-body.fade { color: var(--fade); font-style: italic; font-family: 'EB Garamond', serif; font-size: 0.95rem; }
+
+/* DAYUN */
+.dayun-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.dayun-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  border: 0.5px solid var(--line);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.dayun-item:hover { border-color: var(--gold-light); background: rgba(184,146,42,0.02); }
+.dayun-item.now { border-color: var(--gold); }
+.dayun-item.now::before {
+  content: '▶';
+  position: absolute;
+  left: -1.2rem;
+  color: var(--gold);
+  font-size: 0.6rem;
+}
+.dayun-gz { font-size: 1.3rem; font-weight: 300; min-width: 3rem; }
+.dayun-info { flex: 1; }
+.dayun-age { font-size: 0.82rem; }
+.dayun-yr { font-size: 0.7rem; color: var(--fade); font-family: 'Noto Sans SC', sans-serif; margin-top: 0.2rem; }
+.dayun-verdict {
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  letter-spacing: 0.1em;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.v-good { color: var(--wood); border: 0.5px solid var(--wood); }
+.v-bad { color: var(--red); border: 0.5px solid var(--red); }
+.v-mid { color: var(--earth); border: 0.5px solid var(--earth); }
+.dayun-detail {
+  display: none;
+  padding: 0.8rem 1rem;
+  border: 0.5px solid var(--gold-light);
+  border-top: none;
+  background: rgba(184,146,42,0.02);
+  font-size: 0.82rem;
+  line-height: 1.85;
+  color: var(--fade);
+}
+.dayun-item.open + .dayun-detail { display: block; }
+
+/* ZIWEI GRID */
+.ziwei-grid {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  grid-template-rows: repeat(4,auto);
+  gap: 2px;
+  margin-bottom: 2rem;
+}
+.z-cell {
+  border: 0.5px solid var(--line);
+  padding: 8px 6px;
+  min-height: 90px;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: var(--white);
+}
+.z-cell:hover { border-color: var(--gold-light); background: rgba(184,146,42,0.03); }
+.z-cell.z-ming { border: 1.5px solid var(--gold); }
+.z-cell.z-shen { border: 1.5px solid var(--wood); }
+.z-cell.z-center {
+  grid-column: 2/4;
+  grid-row: 2/4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(184,146,42,0.03);
+  cursor: default;
+}
+.z-palace { font-size: 0.62rem; color: var(--fade); margin-bottom: 2px; letter-spacing: 0.1em; font-family: 'Noto Sans SC', sans-serif; }
+.z-dz { font-size: 0.58rem; color: var(--line); margin-bottom: 3px; }
+.z-stars { display: flex; flex-direction: column; gap: 1px; }
+.z-star {
+  font-size: 0.7rem;
+  font-weight: 400;
+  padding: 1px 3px;
+  display: inline-block;
+}
+.z-mark {
+  float: right;
+  font-size: 0.55rem;
+  padding: 1px 3px;
+  margin-left: 2px;
+}
+.z-detail {
+  border: 0.5px solid var(--gold-light);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.9;
+  color: var(--fade);
+  background: rgba(184,146,42,0.02);
+  min-height: 60px;
+}
+
+/* DIVIDER */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+  color: var(--line);
+}
+.divider::before, .divider::after { content: ''; flex: 1; height: 0.5px; background: var(--line); }
+.divider span { font-size: 0.65rem; letter-spacing: 0.3em; color: var(--fade); font-family: 'Noto Sans SC', sans-serif; }
+
+/* SHISHEN */
+.shishen-grid {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 6px;
+  margin-bottom: 1.5rem;
+}
+.ss-card {
+  border: 0.5px solid var(--line);
+  padding: 10px 8px;
+  text-align: center;
+  background: var(--white);
+}
+.ss-card .pillar-pos { font-size: 0.62rem; color: var(--fade); margin-bottom: 4px; letter-spacing: 0.1em; font-family: 'Noto Sans SC', sans-serif; }
+.ss-card .ss-char { font-size: 1.4rem; font-weight: 300; line-height: 1.1; }
+.ss-card .ss-name { font-size: 0.7rem; font-weight: 500; padding: 2px 6px; display: inline-block; margin-top: 4px; letter-spacing: 0.05em; }
+.ss-card .ss-wx { font-size: 0.6rem; color: var(--fade); margin-top: 3px; font-family: 'Noto Sans SC', sans-serif; }
+.ss-detail {
+  border: 0.5px solid var(--gold-light);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+  background: rgba(184,146,42,0.02);
+  font-size: 0.85rem;
+  line-height: 1.9;
+  color: var(--fade);
+  min-height: 50px;
+}
+.ss-legend {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 6px;
+  margin-bottom: 1.5rem;
+}
+.ss-leg-item {
+  border: 0.5px solid var(--line);
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ss-leg-item:hover { border-color: var(--gold-light); background: rgba(184,146,42,0.02); }
+.ss-leg-name { font-size: 0.78rem; font-weight: 500; margin-bottom: 3px; }
+.ss-leg-desc { font-size: 0.7rem; color: var(--fade); line-height: 1.6; font-family: 'Noto Sans SC', sans-serif; }
+
+
+/* HIDDEN STEMS + PATTERN INSIGHT */
+.canggan-wrap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 0.8rem 0 1.4rem;
+}
+.canggan-card {
+  border: 0.5px solid var(--line);
+  background: var(--white);
+  padding: 10px 8px;
+  min-height: 116px;
+}
+.canggan-title {
+  font-size: 0.62rem;
+  color: var(--fade);
+  letter-spacing: 0.12em;
+  font-family: 'Noto Sans SC', sans-serif;
+  margin-bottom: 6px;
+}
+.canggan-main {
+  font-size: 1.45rem;
+  font-weight: 300;
+  line-height: 1.1;
+  margin-bottom: 7px;
+}
+.canggan-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 0.5px solid rgba(212,201,176,0.7);
+  padding-top: 4px;
+  margin-top: 4px;
+  gap: 4px;
+}
+.canggan-stem {
+  font-size: 0.78rem;
+}
+.canggan-ss {
+  font-size: 0.62rem;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+.pattern-box {
+  border: 0.5px solid var(--gold-light);
+  background: rgba(184,146,42,0.035);
+  padding: 1rem 1.2rem;
+  margin: 1rem 0 1.5rem;
+}
+.pattern-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.pattern-text {
+  font-size: 0.86rem;
+  line-height: 1.9;
+  color: var(--ink);
+  font-weight: 300;
+}
+.pattern-subtle {
+  color: var(--fade);
+  font-size: 0.78rem;
+  line-height: 1.8;
+  margin-top: 0.5rem;
+}
+@media(max-width:480px){
+  .canggan-wrap{grid-template-columns:1fr 1fr}
+  .shishen-grid{grid-template-columns:repeat(2,1fr)}
+  .ss-legend{grid-template-columns:1fr}
+}
+
+
+
+/* FULL BAZI ANALYSIS */
+.analysis-card {
+  border: 0.5px solid var(--line);
+  background: rgba(250,248,243,0.72);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+.analysis-step-title {
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  margin-bottom: 0.55rem;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.analysis-body {
+  font-size: 0.88rem;
+  line-height: 1.95;
+  color: var(--ink);
+  font-weight: 300;
+}
+.analysis-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8rem 0 1rem;
+  font-size: 0.82rem;
+}
+.analysis-table th, .analysis-table td {
+  border: 0.5px solid var(--line);
+  padding: 0.55rem 0.45rem;
+  text-align: center;
+  font-weight: 300;
+}
+.analysis-table th {
+  color: var(--fade);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+}
+.analysis-highlight {
+  color: var(--red);
+  font-weight: 500;
+}
+.analysis-note {
+  border-left: 2px solid var(--gold);
+  padding: 0.8rem 1rem;
+  background: rgba(184,146,42,0.04);
+  font-size: 0.88rem;
+  line-height: 1.9;
+  margin-top: 0.8rem;
+}
+
+
+.analysis-alert {
+  border: 0.5px solid rgba(139,32,32,0.22);
+  background: rgba(139,32,32,0.045);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.86rem;
+  line-height: 1.85;
+  color: var(--ink);
+}
+.analysis-alert strong { color: var(--red); font-weight: 500; }
+/* NARRATIVE READING FORMAT */
+.narrative-card {
+  border: 0.5px solid rgba(212,201,176,0.9);
+  background: rgba(26,20,16,0.035);
+  padding: 1.15rem 1.25rem;
+  margin: 1rem 0 1.2rem;
+}
+.narrative-title {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 0.8rem;
+}
+.narrative-line {
+  font-size: 0.9rem;
+  line-height: 2.05;
+  color: var(--ink);
+  margin: 0.55rem 0;
+  font-weight: 300;
+}
+.narrative-label {
+  color: var(--gold);
+  font-weight: 500;
+}
+.narrative-em {
+  color: var(--red);
+  font-weight: 500;
+}
+.narrative-soft {
+  color: var(--fade);
+}
+
+.analysis-mini-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
+}
+.analysis-mini-card {
+  border: 0.5px solid var(--line);
+  background: rgba(255,255,255,0.35);
+  padding: 0.75rem 0.8rem;
+  font-size: 0.82rem;
+  line-height: 1.75;
+}
+.analysis-mini-title {
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  margin-bottom: 0.35rem;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+@media(max-width:480px){
+  .analysis-mini-grid{grid-template-columns:1fr}
+}
+
+/* FOOTER */
+.footer { text-align: center; padding: 2rem; border-top: 0.5px solid var(--line); }
+.footer p { font-size: 0.7rem; color: var(--fade); letter-spacing: 0.15em; font-family: 'Noto Sans SC', sans-serif; }
+
+/* LOADING */
+.loading {
+  text-align: center;
+  padding: 3rem;
+  display: none;
+}
+.loading.show { display: block; }
+.loading-char {
+  font-size: 2rem;
+  font-weight: 300;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+/* EN mode
+   Keep Chinese content visible as a fallback, because many generated readings
+   are richer in Chinese than in English. This prevents blank sections when EN is clicked. */
+.en { display: none; }
+body.en .en { display: inline !important; }
+body.en div.en,
+body.en p.en,
+body.en section.en,
+body.en .interp-body.en,
+body.en .interp-title.en,
+body.en .trauma-hero.en,
+body.en .trauma-map.en,
+body.en .trauma-card.en,
+body.en .analysis-card.en,
+body.en .wx-title.en,
+body.en .form-title.en,
+body.en .tagline.en {
+  display: block !important;
+}
+body:not(.en) .en { display: none !important; }
+body:not(.en) .zh { display: block; }
+body.en .zh { display: block !important; }
+body.en span.zh, body.en label.zh { display: inline !important; }
+body.en .en-fallback-note { display: block !important; }
+body:not(.en) .en-fallback-note { display: none !important; }
+
+
+@media(max-width:480px){
+  .form-grid{grid-template-columns:1fr}
+  .form-full{grid-column:1}
+  .pillars{gap:0}
+  .pillar-char{font-size:1.8rem}
+  .tab-btn{padding:0.6rem 0.8rem;font-size:0.75rem}
+}
+
+
+/* TRAUMA / FAMILY SCRIPT */
+.trauma-hero {
+  border: 1px solid var(--gold-light);
+  background: linear-gradient(135deg, rgba(184,146,42,0.08), rgba(255,255,255,0.35));
+  padding: 1.2rem 1.3rem;
+  margin-bottom: 1.2rem;
+}
+.trauma-kicker {
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  color: var(--gold);
+  font-family: 'Noto Sans SC', sans-serif;
+  margin-bottom: 0.45rem;
+}
+.trauma-headline {
+  font-size: 1rem;
+  line-height: 1.8;
+  font-weight: 500;
+  color: var(--ink);
+}
+.trauma-sub {
+  font-size: 0.82rem;
+  line-height: 1.9;
+  color: var(--fade);
+  margin-top: 0.6rem;
+}
+.trauma-map {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 1rem 0 1.4rem;
+}
+.trauma-chip {
+  border: 0.5px solid var(--line);
+  background: var(--white);
+  padding: 0.65rem 0.75rem;
+}
+.trauma-chip strong { font-size: 0.78rem; color: var(--ink); }
+.trauma-chip span { display:block; font-size:0.68rem; color:var(--fade); margin-top:0.25rem; line-height:1.55; }
+.trauma-card {
+  border: 0.5px solid var(--line);
+  background: var(--white);
+  padding: 1.15rem 1.25rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+.trauma-card.primary {
+  border-color: var(--gold);
+  background: rgba(184,146,42,0.035);
+}
+.trauma-rank {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  font-family: 'Noto Sans SC', sans-serif;
+  margin-bottom: 0.35rem;
+}
+.trauma-title {
+  font-size: 1rem;
+  color: var(--ink);
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+.trauma-score {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 0.62rem;
+  color: var(--fade);
+  border: 0.5px solid var(--line);
+  padding: 2px 7px;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.trauma-section-title {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  font-family: 'Noto Sans SC', sans-serif;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+.trauma-body {
+  font-size: 0.85rem;
+  line-height: 1.95;
+  color: var(--fade);
+}
+
+.chart-signal-box { display:flex; flex-direction:column; gap:0.42rem; margin-top:0.2rem; }
+.chart-signal-row { border-left:2px solid var(--gold-light); padding:0.45rem 0.65rem; background:rgba(184,146,42,0.025); }
+.chart-signal-label { display:inline-block; min-width:3.4rem; color:var(--gold); font-size:0.72rem; letter-spacing:0.08em; font-family:'Noto Sans SC',sans-serif; }
+.chart-signal-text { color:var(--fade); font-size:0.84rem; line-height:1.85; }
+.chart-signal-row.summary .chart-signal-text { color:var(--ink); }
+
+.trauma-question {
+  margin-top: 0.8rem;
+  border-left: 2px solid var(--gold-light);
+  padding-left: 0.85rem;
+  color: var(--ink);
+  font-size: 0.86rem;
+  line-height: 1.9;
+}
+
+.trauma-sublist { margin: 0.35rem 0 0.75rem 1.1rem; color: var(--fade); font-size: 0.82rem; line-height: 1.8; }
+.trauma-sublist li { margin-bottom: 0.15rem; }
+@media(max-width:480px){.trauma-map{grid-template-columns:1fr}.trauma-score{position:static;display:inline-block;margin-bottom:0.5rem}}
+
+
+.v24-proof-panel{max-width:980px;margin:1.3rem auto 0;padding:1.4rem 1.6rem;border:1px solid var(--gold);background:rgba(181,138,86,.07);box-shadow:0 8px 24px rgba(50,40,28,.05)}
+.v24-proof-title{font-size:.82rem;letter-spacing:.22em;color:var(--gold);font-family:'Noto Sans SC',sans-serif;margin-bottom:.7rem}
+.v24-proof-head{font-size:1.2rem;line-height:1.8;color:var(--ink);font-weight:600;margin-bottom:.8rem}
+.v24-proof-text{font-size:.88rem;line-height:2;color:var(--muted)}
+.v24-proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-top:1rem}
+.v24-proof-card{border:1px solid var(--line);background:rgba(255,255,255,.55);padding:.9rem;min-height:5.4rem}
+.v24-proof-card strong{display:block;color:var(--ink);font-size:.9rem;margin-bottom:.45rem}
+.v24-proof-card span{display:block;color:var(--fade);font-size:.76rem;line-height:1.75}
+@media(max-width:760px){.v24-proof-grid{grid-template-columns:1fr}.v24-proof-panel{margin:1rem 1rem 0}}
+
+</style>
+</head>
+<body>
+
+
+
+<header class="header">
+  <div class="lang-switch">
+    <button class="lang-btn active" onclick="setLang('zh')">中文</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+  </div>
+  <div class="logo-zh">命　盘</div>
+  <div class="logo-en">Destiny Chart</div>
+  <div class="tagline zh">八字 · 紫微斗数 · 家族剧本 · 事业权威</div>
+  <div class="tagline en" style="display:none">BaZi · Zi Wei Dou Shu · Life Cycles</div>
+</header>
+
+
+<div class="form-wrap">
+  <div class="form-title zh">输 入 出 生 信 息</div>
+  <div class="form-title en" style="display:none">BIRTH INFORMATION</div>
+  <div class="zh" style="text-align:center;color:var(--fade);font-size:0.72rem;line-height:1.7;margin-top:-1rem;margin-bottom:1.5rem;font-family:'Noto Sans SC',sans-serif;">请输入阳历生日；八字年柱、月柱按节气换算。</div>
+  <div class="en" style="display:none;text-align:center;color:var(--fade);font-size:0.72rem;line-height:1.7;margin-top:-1rem;margin-bottom:1.5rem;font-family:'Noto Sans SC',sans-serif;">Enter Gregorian birth date. BaZi year/month are calculated by solar terms.</div>
+  <div class="form-grid">
+    <div class="field">
+      <label class="zh">出生年份</label>
+      <label class="en" style="display:none">BIRTH YEAR</label>
+      <input type="number" id="year" placeholder="e.g. 1990" min="1900" max="2030">
+    </div>
+    <div class="field">
+      <label class="zh">出生月份</label>
+      <label class="en" style="display:none">BIRTH MONTH</label>
+      <div class="select-wrap">
+        <select id="month">
+          <option value="1">1月 Jan</option><option value="2">2月 Feb</option>
+          <option value="3">3月 Mar</option><option value="4">4月 Apr</option>
+          <option value="5">5月 May</option><option value="6">6月 Jun</option>
+          <option value="7">7月 Jul</option><option value="8">8月 Aug</option>
+          <option value="9">9月 Sep</option><option value="10">10月 Oct</option>
+          <option value="11">11月 Nov</option><option value="12">12月 Dec</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label class="zh">出生日</label>
+      <label class="en" style="display:none">BIRTH DAY</label>
+      <input type="number" id="day" placeholder="1-31" min="1" max="31">
+    </div>
+    <div class="field">
+      <label class="zh">出生时辰</label>
+      <label class="en" style="display:none">BIRTH HOUR</label>
+      <div class="select-wrap">
+        <select id="hour">
+          <option value="0">子时 23:00–1:00</option>
+          <option value="1">丑时 1:00–3:00</option>
+          <option value="2">寅时 3:00–5:00</option>
+          <option value="3">卯时 5:00–7:00</option>
+          <option value="4">辰时 7:00–9:00</option>
+          <option value="5">巳时 9:00–11:00</option>
+          <option value="6">午时 11:00–13:00</option>
+          <option value="7">未时 13:00–15:00</option>
+          <option value="8">申时 15:00–17:00</option>
+          <option value="9">酉时 17:00–19:00</option>
+          <option value="10">戌时 19:00–21:00</option>
+          <option value="11">亥时 21:00–23:00</option>
+        </select>
+      </div>
+    </div>
+    <div class="field form-full">
+      <label class="zh">性别</label>
+      <label class="en" style="display:none">GENDER</label>
+      <div class="select-wrap">
+        <select id="gender">
+          <option value="M">男 Male</option>
+          <option value="F">女 Female</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <button class="calc-btn" onclick="calculate()">
+    <span class="zh">排　命　盘</span>
+    <span class="en" style="display:none">CALCULATE CHART</span>
+  </button>
+</div>
+
+<div class="loading" id="loading">
+  <div class="loading-char">命</div>
+  <div style="font-size:0.75rem;color:var(--fade);letter-spacing:0.3em;margin-top:1rem" class="zh">推算中…</div>
+  <div style="font-size:0.75rem;color:var(--fade);letter-spacing:0.3em;margin-top:1rem;display:none" class="en">Calculating…</div>
+</div>
+
+<div class="result" id="result">
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="showTab(0)">
+      <span class="zh">八字</span><span class="en" style="display:none">BaZi</span>
+    </button>
+    <button class="tab-btn" onclick="showTab(1)">
+      <span class="zh">十神</span><span class="en" style="display:none">Ten Gods</span>
+    </button>
+    <button class="tab-btn" onclick="showTab(2)">
+      <span class="zh">人生阶段</span><span class="en" style="display:none">Life Stages</span>
+    </button>
+    <button class="tab-btn" onclick="showTab(3)">
+      <span class="zh">紫微</span><span class="en" style="display:none">Zi Wei</span>
+    </button>
+    <button class="tab-btn" onclick="showTab(4)">
+      <span class="zh">家族剧本</span><span class="en" style="display:none">Family Script</span>
+    </button>
+  </div>
+
+  <!-- BAZI TAB -->
+  <div class="tab-sec on" id="tab0">
+    <div class="depth-toggle">
+      <button class="depth-btn active" onclick="setDepth('simple')">
+        <span class="zh">简洁</span><span class="en" style="display:none">Simple</span>
+      </button>
+      <button class="depth-btn" onclick="setDepth('deep')">
+        <span class="zh">深度解读</span><span class="en" style="display:none">Deep Read</span>
+      </button>
+    </div>
+    <div id="pillars-area"></div>
+    <div class="wx-section">
+      <div class="wx-title zh">五 行 分 布</div>
+      <div class="wx-title en" style="display:none">FIVE ELEMENTS</div>
+      <div id="wx-bars"></div>
+    </div>
+    <div class="interp-block">
+      <div class="interp-title zh">排盘说明</div>
+      <div class="interp-title en" style="display:none">CALCULATION NOTE</div>
+      <div class="interp-body zh">本版按阳历生日输入，年柱以立春为界，月柱以十二节气为界，日柱用儒略日推算。若出生在节气交接当天或子时附近，建议人工复核。</div>
+      <div class="interp-body en" style="display:none">This version uses Gregorian birth date, solar terms for year/month pillars, and Julian Day Number for the day pillar. Births near solar-term boundaries or Zi hour may need manual verification.</div>
+    </div>
+    <div class="depth-content" id="deep-content" style="display:none"></div>
+  </div>
+
+  <!-- SHISHEN TAB -->
+  <div class="tab-sec" id="tab1">
+    <div class="depth-toggle">
+      <button class="depth-btn active" onclick="setDepthSS('simple')">
+        <span class="zh">命盘十神</span><span class="en" style="display:none">Chart</span>
+      </button>
+      <button class="depth-btn" onclick="setDepthSS('deep')">
+        <span class="zh">十神详解</span><span class="en" style="display:none">Details</span>
+      </button>
+    </div>
+    <div id="ss-area"></div>
+    <div class="ss-detail" id="ss-detail">
+      <span style="color:var(--line);letter-spacing:0.2em;font-size:0.72rem" class="zh">点击上方干支查看十神含义</span>
+      <span style="display:none;color:var(--line);letter-spacing:0.1em;font-size:0.72rem" class="en">Click a stem/branch to see its Ten God meaning</span>
+    </div>
+    <div id="ss-legend-area" style="display:none"></div>
+  </div>
+
+  <!-- LIFE STAGES TAB -->
+  <div class="tab-sec" id="tab2">
+    <div id="dayun-area"></div>
+  </div>
+
+  <!-- ZIWEI TAB -->
+  <div class="tab-sec" id="tab3">
+    <div class="depth-toggle">
+      <button class="depth-btn active" onclick="setDepth2('simple')">
+        <span class="zh">命盘</span><span class="en" style="display:none">Chart</span>
+      </button>
+      <button class="depth-btn" onclick="setDepth2('deep')">
+        <span class="zh">宫位解读</span><span class="en" style="display:none">Palace Read</span>
+      </button>
+    </div>
+    <div id="ziwei-area"></div>
+    <div class="z-detail" id="z-detail">
+      <span class="zh" style="color:var(--line);letter-spacing:0.2em;font-size:0.75rem">点击宫位查看解读</span>
+      <span class="en" style="display:none;color:var(--line);letter-spacing:0.1em;font-size:0.75rem">Click a palace for interpretation</span>
+    </div>
+    <div id="ziwei-summary-area"></div>
+  </div>
+
+  <!-- FAMILY SCRIPT TAB -->
+  <div class="tab-sec" id="tab4">
+    <div class="trauma-hero">
+      <div class="trauma-kicker zh">家 族 情 绪 剧 本</div>
+      <div class="trauma-kicker en" style="display:none">FAMILY EMOTIONAL SCRIPT</div>
+      <div class="trauma-headline zh">这部分不是判断“命好不好”，而是从八字与紫微中提炼最容易重复的家族情绪图谱。</div>
+      <div class="trauma-headline en" style="display:none">This section maps recurring family-emotional patterns rather than fortune alone.</div>
+      <div class="trauma-sub zh">系统会从十二条主脉络中自动筛选最明显的几条，并明确展开：命盘信号、事业权威、综合判断、子剧本、现实表现与转化功课。</div>
+      <div class="trauma-sub en" style="display:none">The strongest patterns are selected from twelve family-script lines and expanded into sub-scripts, chart signals, and reflection practices.</div>
+    </div>
+    <div id="trauma-area"></div>
+  </div>
+</div>
+
+<footer class="footer">
+  <p class="zh">命由天定，运在人为　·　知命方能造命</p>
+  <p class="en" style="display:none">Fate is given · Fortune is made · Know your destiny to shape it</p>
+</footer>
+
+<script>
+// ========== DATA ==========
+const TG=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const DZ=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const WX_TG=['木','木','火','火','土','土','金','金','水','水'];
+const WX_DZ=['水','土','木','木','土','火','火','土','金','金','土','水'];
+const YY_TG=['阳','阴','阳','阴','阳','阴','阳','阴','阳','阴'];
+const WX_EN=['Wood','Wood','Fire','Fire','Earth','Earth','Metal','Metal','Water','Water'];
+const WX_DZ_EN=['Water','Earth','Wood','Wood','Earth','Fire','Fire','Earth','Metal','Metal','Earth','Water'];
+const WX_CLASS=['c-wood','c-wood','c-fire','c-fire','c-earth','c-earth','c-metal','c-metal','c-water','c-water'];
+const WX_DZ_CLASS=['c-water','c-earth','c-wood','c-wood','c-earth','c-fire','c-fire','c-earth','c-metal','c-metal','c-earth','c-water'];
+
+const WX_COLOR={
+  '木':{fill:'#4a7c59',bg:'rgba(74,124,89,0.08)'},
+  '火':{fill:'#8b3a1a',bg:'rgba(139,58,26,0.08)'},
+  '土':{fill:'#7a6030',bg:'rgba(122,96,48,0.08)'},
+  '金':{fill:'#5a5a6a',bg:'rgba(90,90,106,0.08)'},
+  '水':{fill:'#2a4a7a',bg:'rgba(42,74,122,0.08)'},
+};
+
+const STAR_COLOR={
+  '紫微':{c:'#534AB7',bg:'rgba(83,74,183,0.08)'},
+  '天机':{c:'#085041',bg:'rgba(8,80,65,0.08)'},
+  '太阳':{c:'#8b3a1a',bg:'rgba(139,58,26,0.08)'},
+  '武曲':{c:'#4a4a5a',bg:'rgba(74,74,90,0.08)'},
+  '天同':{c:'#2a4a7a',bg:'rgba(42,74,122,0.08)'},
+  '廉贞':{c:'#72243E',bg:'rgba(114,36,62,0.08)'},
+  '天府':{c:'#7a6030',bg:'rgba(122,96,48,0.08)'},
+  '太阴':{c:'#3C3489',bg:'rgba(60,52,137,0.08)'},
+  '贪狼':{c:'#712B13',bg:'rgba(113,43,19,0.08)'},
+  '巨门':{c:'#27500A',bg:'rgba(39,80,10,0.08)'},
+  '天相':{c:'#0C447C',bg:'rgba(12,68,124,0.08)'},
+  '天梁':{c:'#854F0B',bg:'rgba(133,79,11,0.08)'},
+  '七杀':{c:'#8b2020',bg:'rgba(139,32,32,0.08)'},
+  '破军':{c:'#4a4a5a',bg:'rgba(74,74,90,0.08)'},
+};
+const AUX_COLOR={c:'#8a7d6a',bg:'rgba(138,125,106,0.06)'};
+const BAD_COLOR={c:'#8b2020',bg:'rgba(139,32,32,0.06)'};
+const HUA_COLOR={c:'#b8922a',bg:'rgba(184,146,42,0.08)'};
+
+let currentDepth='simple', currentDepth2='simple', currentLang='zh';
+
+// ========== LANG ==========
+function setLang(l){
+  currentLang=l;
+  document.body.classList.toggle('en',l==='en');
+  document.querySelectorAll('.lang-btn').forEach((b,i)=>b.classList.toggle('active',i===(l==='en'?1:0)));
+}
+
+// ========== TABS ==========
+function showTab(i){
+  document.querySelectorAll('.tab-sec').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab'+i).classList.add('on');
+  document.querySelectorAll('.tab-btn')[i].classList.add('active');
+}
+
+function setDepth(d){
+  currentDepth=d;
+  document.querySelectorAll('#tab0 .depth-btn').forEach((b,i)=>b.classList.toggle('active',i===(d==='simple'?0:1)));
+  document.getElementById('deep-content').style.display=d==='deep'?'block':'none';
+}
+
+function setDepth2(d){
+  currentDepth2=d;
+  document.querySelectorAll('#tab3 .depth-btn').forEach((b,i)=>b.classList.toggle('active',i===(d==='simple'?0:1)));
+}
+
+// ========== BAZI CALC ==========
+// V7 accuracy upgrade: Gregorian input -> solar-term BaZi month/year + JDN day pillar.
+// The solar-term formula returns the calendar day of each term. For births very close to a term boundary
+// or around 子时, a professional manual check is still recommended.
+const SOLAR_TERM_INFO=[0,21208,42467,63836,85337,107014,128867,150921,173149,195551,218072,240693,263343,285989,308563,331033,353350,375494,397447,419210,440795,462224,483532,504758];
+const SOLAR_TERM_NAMES=['小寒','大寒','立春','雨水','惊蛰','春分','清明','谷雨','立夏','小满','芒种','夏至','小暑','大暑','立秋','处暑','白露','秋分','寒露','霜降','立冬','小雪','大雪','冬至'];
+
+function solarTermDay(year,termIndex){
+  const t=31556925974.7*(year-1900)+SOLAR_TERM_INFO[termIndex]*60000+Date.UTC(1900,0,6,2,5);
+  return new Date(t).getUTCDate();
+}
+
+function termDateLocal(year,termIndex){
+  const month=Math.floor(termIndex/2);
+  const day=solarTermDay(year,termIndex);
+  return new Date(year,month,day,12,0,0);
+}
+
+function gregorianJDN(y,m,d){
+  if(m<=2){y-=1;m+=12;}
+  const A=Math.floor(y/100);
+  const B=2-A+Math.floor(A/4);
+  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524;
+}
+
+function getYearGZ(y,m,d){
+  const birth=new Date(y,m-1,d,12,0,0);
+  const lichun=termDateLocal(y,2);
+  const useY=birth>=lichun?y:y-1;
+  const t=(useY-4)%60;
+  return {ti:((t%60)+60)%10, di:((t%60)+60)%12};
+}
+
+function getMonthGZ(y,m,d,yearTi){
+  const birth=new Date(y,m-1,d,12,0,0);
+  const starts=[
+    {date:termDateLocal(y-1,22),di:0,name:'大雪'}, // 子月 may begin in previous December
+    {date:termDateLocal(y,0),di:1,name:'小寒'},
+    {date:termDateLocal(y,2),di:2,name:'立春'},
+    {date:termDateLocal(y,4),di:3,name:'惊蛰'},
+    {date:termDateLocal(y,6),di:4,name:'清明'},
+    {date:termDateLocal(y,8),di:5,name:'立夏'},
+    {date:termDateLocal(y,10),di:6,name:'芒种'},
+    {date:termDateLocal(y,12),di:7,name:'小暑'},
+    {date:termDateLocal(y,14),di:8,name:'立秋'},
+    {date:termDateLocal(y,16),di:9,name:'白露'},
+    {date:termDateLocal(y,18),di:10,name:'寒露'},
+    {date:termDateLocal(y,20),di:11,name:'立冬'},
+    {date:termDateLocal(y,22),di:0,name:'大雪'},
+  ];
+  let cur=starts[0];
+  for(const st of starts){ if(birth>=st.date) cur=st; }
+  const mDz=cur.di;
+  // 寅月起干：甲己丙寅，乙庚戊寅，丙辛庚寅，丁壬壬寅，戊癸甲寅
+  const yinStart=[2,4,6,8,0][yearTi%5];
+  const ti=(yinStart+((mDz-2+12)%12))%10;
+  return {ti,di:mDz,term:cur.name};
+}
+
+function getDayGZ(y,m,d){
+  const j=gregorianJDN(y,m,d);
+  const idx=(j+19)%60; // calibrated to 1900-01-01 庚子 and common sexagenary day cycle
+  return {ti:((idx%10)+10)%10, di:((idx%12)+12)%12};
+}
+
+function getHourGZ(dayTi,hr){
+  // 子时起干：甲己甲子，乙庚丙子，丙辛戊子，丁壬庚子，戊癸壬子
+  const starts=[0,2,4,6,8];
+  const g=dayTi%5;
+  const s=starts[g];
+  return {ti:(s+hr)%10, di:hr};
+}
+
+// ========== ZIWEI CALC ==========
+function getMingong(lmonth, hourDz){
+  const startDz=['寅','丑','子','亥','戌','酉','申','未','午','巳','辰','卯'];
+  const ml=DZ.indexOf(startDz[lmonth-1]);
+  const ha=DZ.indexOf(hourDz);
+  return (ml+ha)%12;
+}
+
+function getMingongTG(yearTgName, mingDz){
+  const yin={甲:'丙',乙:'丙',丙:'戊',丁:'戊',戊:'庚',己:'庚',庚:'壬',辛:'壬',壬:'甲',癸:'甲'};
+  const yst={丙:2,戊:4,庚:6,壬:8,甲:0};
+  const yt=yin[yearTgName];
+  const ys=yst[yt];
+  const order=['寅','卯','辰','巳','午','未','申','酉','戌','亥','子','丑'];
+  const steps=order.indexOf(DZ[mingDz]);
+  if(steps<0)return (ys)%10;
+  return (ys+steps)%10;
+}
+
+function getJu(tgName, dzName){
+  const t={
+    '甲子':2,'乙丑':2,'壬午':2,'癸未':2,'甲午':2,'乙未':2,'壬子':2,'癸丑':2,
+    '丙寅':3,'丁卯':3,'庚申':3,'辛酉':3,'丙申':3,'丁酉':3,'庚寅':3,'辛卯':3,
+    '甲寅':3,'乙卯':3,'壬申':3,'癸酉':3,'甲申':3,'乙酉':3,'壬寅':3,'癸卯':3,
+    '丙子':3,'丁丑':3,'庚午':3,'辛未':3,'丙午':3,'丁未':3,'庚子':3,'辛丑':3,
+    '戊辰':4,'己巳':4,'丙戌':4,'丁亥':4,'戊戌':4,'己亥':4,'丙辰':4,'丁巳':4,
+    '甲辰':4,'乙巳':4,'壬戌':4,'癸亥':4,'甲戌':4,'乙亥':4,'壬辰':4,'癸巳':4,
+    '戊子':4,'己丑':4,'丙午':4,'丁未':4,'戊午':4,'己未':4,'丙子':4,'丁丑':4,
+    '庚辰':5,'辛巳':5,'戊戌':5,'己亥':5,'庚戌':5,'辛亥':5,
+  };
+  return t[tgName+dzName]||3;
+}
+
+function getZiweiPos(ju, lday){
+  const rem=lday%ju;
+  const q=Math.floor(lday/ju);
+  const pos=rem===0?q-1:q;
+  return (2+pos)%12;
+}
+
+function getTianfuPos(zi){return (14-(zi+1)+12*3)%12;}
+
+function getMainStars(zi,tf){
+  const m={};
+  const zs=[zi,(zi-1+12)%12,(zi-3+12)%12,(zi-4+12)%12,(zi-5+12)%12,(zi-8+12)%12];
+  const zn=['紫微','天机','太阳','武曲','天同','廉贞'];
+  const ts=[tf,(tf+1)%12,(tf+2)%12,(tf+3)%12,(tf+4)%12,(tf+5)%12,(tf+6)%12,(tf+10)%12];
+  const tn=['天府','太阴','贪狼','巨门','天相','天梁','七杀','破军'];
+  zs.forEach((p,i)=>{m[p]=m[p]||[];m[p].push({n:zn[i],type:'main'});});
+  ts.forEach((p,i)=>{m[p]=m[p]||[];m[p].push({n:tn[i],type:'main'});});
+  return m;
+}
+
+const SIHUA={
+  甲:{禄:'廉贞',权:'破军',科:'武曲',忌:'太阳'},
+  乙:{禄:'天机',权:'天梁',科:'紫微',忌:'太阴'},
+  丙:{禄:'天同',权:'天机',科:'文昌',忌:'廉贞'},
+  丁:{禄:'太阴',权:'天同',科:'天机',忌:'巨门'},
+  戊:{禄:'贪狼',权:'太阴',科:'右弼',忌:'天机'},
+  己:{禄:'武曲',权:'贪狼',科:'天梁',忌:'文曲'},
+  庚:{禄:'太阳',权:'武曲',科:'太阴',忌:'天同'},
+  辛:{禄:'巨门',权:'太阳',科:'文曲',忌:'文昌'},
+  壬:{禄:'天梁',权:'紫微',科:'左辅',忌:'武曲'},
+  癸:{禄:'破军',权:'巨门',科:'太阴',忌:'贪狼'},
+};
+
+// Approximate solar to lunar (simplified)
+function solarToLunar(y,m,d){
+  // Simplified mapping - key dates
+  const lunarNew={
+    '2009-1':new Date(2009,0,26),'2009-2':new Date(2009,1,25),
+    '2009-3':new Date(2009,2,27),'2009-4':new Date(2009,3,25),
+    '2009-5':new Date(2009,4,25),'2009-6':new Date(2009,5,23),
+    '2009-7':new Date(2009,6,23),'2009-8':new Date(2009,7,21),
+    '2009-9':new Date(2009,8,19),'2009-10':new Date(2009,9,19),
+    '2009-11':new Date(2009,10,17),'2009-12':new Date(2009,11,16),
+    '2012-1':new Date(2012,0,23),'2012-2':new Date(2012,1,22),
+    '2012-3':new Date(2012,2,22),'2012-4':new Date(2012,3,21),
+    '2012-5':new Date(2012,4,21),'2012-6':new Date(2012,5,20),
+    '2012-7':new Date(2012,6,19),'2012-8':new Date(2012,7,18),
+    '1976-1':new Date(1976,0,1),'1976-2':new Date(1976,1,31),
+    '1976-3':new Date(1976,3,1),'1976-4':new Date(1976,3,1),
+    '1976-5':new Date(1976,4,1),'1976-6':new Date(1976,4,31),
+    '1976-7':new Date(1976,5,29),'1976-8':new Date(1976,6,29),
+    '1976-9':new Date(1976,7,28),'1976-10':new Date(1976,8,1),
+    '1990-1':new Date(1990,0,27),'1990-2':new Date(1990,1,26),
+  };
+  const birth=new Date(y,m-1,d);
+  // Find which lunar month this falls in
+  for(let lm=12;lm>=1;lm--){
+    const key=`${y}-${lm}`;
+    if(lunarNew[key]&&birth>=lunarNew[key]){
+      const ld=Math.floor((birth-lunarNew[key])/86400000)+1;
+      return{lm,ld};
+    }
+  }
+  // Fallback: rough estimate
+  const approxLm=m;
+  const approxLd=d<15?d+15:d-14;
+  return{lm:approxLm,ld:Math.min(approxLd,30)};
+}
+
+// ========== INTERPRETATION DATA ==========
+const DAYMASTER_INFO={
+  甲:{zh:'甲木·栋梁之木',en:'Jiǎ Wood · Great Tree',zh_desc:'性格正直进取、有领导力，目标感强。书中说"甲木参天，脱胎要火"——有大志，需要热情和行动力来驱动。',en_desc:'Upright, ambitious, natural leader. Needs passion and drive to reach your heights.'},
+  乙:{zh:'乙木·花草之木',en:'Yǐ Wood · Vine & Flower',zh_desc:'柔韧随和、善于变通，人际关系好，有艺术感。',en_desc:'Flexible, socially gifted, artistic. Adapts well, wins people over.'},
+  丙:{zh:'丙火·太阳之火',en:'Bǐng Fire · The Sun',zh_desc:'热情开朗、积极外向，有感染力，光明磊落。',en_desc:'Warm, outgoing, radiant. People are drawn to your energy.'},
+  丁:{zh:'丁火·灯烛之火',en:'Dīng Fire · Candlelight',zh_desc:'细腻温柔、有艺术气质，内敛而有深度。',en_desc:'Gentle, artistic, quietly deep. You glow steadily.'},
+  戊:{zh:'戊土·山岳之土',en:'Wù Earth · Mountain',zh_desc:'厚重稳健、值得信赖，包容力强，有责任感。',en_desc:'Steady, reliable, broad-shouldered. A mountain people lean on.'},
+  己:{zh:'己土·田园之土',en:'Jǐ Earth · Garden Soil',zh_desc:'温和包容、踏实稳重，善于照顾他人，有耐心。',en_desc:'Nurturing, patient, grounded. You hold space for others.'},
+  庚:{zh:'庚金·刀剑之金',en:'Gēng Metal · Sword',zh_desc:'刚健果断、有魄力，行动力强，书中说"庚金带煞，刚健为最"。',en_desc:'Bold, decisive, forceful. You cut through what others can\'t.'},
+  辛:{zh:'辛金·珠宝之金',en:'Xīn Metal · Jewel',zh_desc:'精致敏感、有审美，善于观察，重细节，书中说"辛金软弱，湿润而清"。',en_desc:'Refined, perceptive, detail-oriented. You see what others miss.'},
+  壬:{zh:'壬水·江河之水',en:'Rén Water · River',zh_desc:'聪明包容、思维广阔，灵活变通，有大局观。',en_desc:'Intelligent, broad-minded, fluid. You flow around obstacles.'},
+  癸:{zh:'癸水·雨露之水',en:'Guǐ Water · Rain & Dew',zh_desc:'细腻敏锐、直觉强，感知力强，有洞察力。',en_desc:'Intuitive, sensitive, perceptive. You feel what others can\'t.'},
+};
+
+const WX_PERSONALITY={
+  木:{zh:'仁慈进取，创造力强，有生长之势',en:'Benevolent, creative, always growing'},
+  火:{zh:'热情礼节，有感染力，善于表达',en:'Passionate, expressive, socially magnetic'},
+  土:{zh:'信用包容，踏实稳重，重视根基',en:'Trustworthy, grounded, values stability'},
+  金:{zh:'义气果断，有原则，执行力强',en:'Principled, decisive, strong follow-through'},
+  水:{zh:'智慧灵活，有洞察力，善于变通',en:'Wise, adaptable, sees beneath the surface'},
+};
+
+const PALACE_INTERP={
+  命宫:{
+    zh:'命宫是整张盘的核心，代表你的本质性格、外在气质与一生格局。',
+    en:'The Life Palace is the heart of your chart — your essential nature, presence, and life path.',
+  },
+  父母:{
+    zh:'父母宫：与父母的关系、家族背景，以及你早年接受的塑造。',
+    en:'Parents Palace: Your relationship with parents, family background, and early conditioning.',
+  },
+  福德:{
+    zh:'福德宫：内心世界、精神享受、人生态度与福气深浅。',
+    en:'Fortune & Virtue Palace: Your inner life, spiritual nature, and sense of contentment.',
+  },
+  田宅:{
+    zh:'田宅宫：居家环境、不动产、家庭氛围与物质基础。',
+    en:'Property Palace: Home environment, real estate, family atmosphere.',
+  },
+  官禄:{
+    zh:'官禄宫：事业、工作、社会成就与职业方向。',
+    en:'Career Palace: Work, achievement, social status, and professional direction.',
+  },
+  仆役:{
+    zh:'仆役宫：朋友、同事、合作关系与人际互动。',
+    en:'Servants Palace: Friends, colleagues, partnerships, social interactions.',
+  },
+  迁移:{
+    zh:'迁移宫：出行、在外际遇、异乡缘分与环境变化。',
+    en:'Travel Palace: Movement, encounters abroad, how you fare outside your home base.',
+  },
+  疾厄:{
+    zh:'疾厄宫：身体健康、心理状态与潜在需注意的部分。',
+    en:'Health Palace: Physical wellbeing, mental state, areas to watch.',
+  },
+  财帛:{
+    zh:'财帛宫：财运、收入方式、对金钱的态度与财富格局。',
+    en:'Wealth Palace: Financial fortune, income style, and relationship with money.',
+  },
+  子女:{
+    zh:'子女宫：与子女的关系、创造力与下一代缘分。',
+    en:'Children Palace: Relationship with children, creativity, and legacy.',
+  },
+  夫妻:{
+    zh:'夫妻宫：婚姻关系、伴侣特质与感情格局。',
+    en:'Spouse Palace: Marriage, partner\'s qualities, and romantic patterns.',
+  },
+  兄弟:{
+    zh:'兄弟宫：手足关系、内在资源与同辈缘分。',
+    en:'Siblings Palace: Sibling bonds, internal resources, peer relationships.',
+  },
+};
+
+// ========== SHISHEN (TEN GODS) ==========
+const SHENG_MAP = {'木':'火','火':'土','土':'金','金':'水','水':'木'};
+const KE_MAP = {'木':'土','土':'水','水':'火','火':'金','金':'木'};
+const DZ_BENQI = {子:'癸',丑:'己',寅:'甲',卯:'乙',辰:'戊',巳:'丙',午:'丁',未:'己',申:'庚',酉:'辛',戌:'戊',亥:'壬'};
+const DZ_CANGGAN = {
+  子:['癸'],丑:['己','癸','辛'],寅:['甲','丙','戊'],卯:['乙'],
+  辰:['戊','乙','癸'],巳:['丙','庚','戊'],午:['丁','己'],未:['己','丁','乙'],
+  申:['庚','壬','戊'],酉:['辛'],戌:['戊','辛','丁'],亥:['壬','甲']
+};
+
+function getShishen(rizhiTg, otherTg) {
+  const rzWx = WX_TG[TG.indexOf(rizhiTg)];
+  const rzYy = YY_TG[TG.indexOf(rizhiTg)];
+  const otWx = WX_TG[TG.indexOf(otherTg)];
+  const otYy = YY_TG[TG.indexOf(otherTg)];
+  if (rizhiTg === otherTg) return '日主';
+  if (otWx === rzWx) return otYy === rzYy ? '比肩' : '劫财';
+  if (SHENG_MAP[otWx] === rzWx) return otYy !== rzYy ? '正印' : '偏印';
+  if (SHENG_MAP[rzWx] === otWx) return otYy === rzYy ? '食神' : '伤官';
+  if (KE_MAP[otWx] === rzWx) return otYy !== rzYy ? '正官' : '七杀';
+  if (KE_MAP[rzWx] === otWx) return otYy !== rzYy ? '正财' : '偏财';
+  return '';
+}
+
+const SS_INFO = {
+  比肩: {
+    color:'#5a5a6a', bg:'rgba(90,90,106,0.08)',
+    zh:'兄弟姐妹、朋友、竞争对手。代表独立自主、自信坚定，但也容易固执、不服输。',
+    en:'Siblings, peers, competitors. Independent, self-reliant, but can be stubborn.',
+    zh_life:'有比肩的人：朋友多，人脉广，但容易有竞争和争夺。事业上喜欢单打独斗，或者走自由职业、合伙创业的路。比肩多的人个性强，不太愿意依附他人。',
+    en_life:'Many peers in life. Competitive, independent. Good for partnerships or solo ventures. Multiple Rob Wealth suggests strong personality and self-reliance.',
+  },
+  劫财: {
+    color:'#8b3a1a', bg:'rgba(139,58,26,0.08)',
+    zh:'兄弟姐妹（异性）、竞争者。冲动果敢，讲义气，但容易因朋友破财。',
+    en:'Peers (opposite polarity). Bold, loyal, but prone to financial loss through others.',
+    zh_life:'劫财多的人：行动力强，有冲劲，但财来财去，不易积累。感情上容易冲动，需要注意合伙投资的风险。',
+    en_life:'Strong drive and action. Money may come and go. Be careful with partnerships and impulsive spending.',
+  },
+  食神: {
+    color:'#4a7c59', bg:'rgba(74,124,89,0.08)',
+    zh:'才华、口才、享受、乐观。代表创造力、表达能力，也主食禄和口福。',
+    en:'Talent, expression, enjoyment. Creativity, communication, and life pleasures.',
+    zh_life:'食神是命局中的吉星之一。有食神的人：有才华，表达好，懂得享受生活，贵人多。女命食神代表子女，子女聪明乖巧。事业上适合创作、表演、餐饮、教育等方向。',
+    en_life:'One of the most auspicious Ten Gods. Talented, expressive, enjoys life. For women, represents children. Suits creative, performance, or educational careers.',
+  },
+  伤官: {
+    color:'#2a4a7a', bg:'rgba(42,74,122,0.08)',
+    zh:'才华、创意、叛逆、艺术。聪明多才但不服管，喜欢突破规则。',
+    en:'Creativity, brilliance, rebelliousness. Gifted but resistant to authority.',
+    zh_life:'伤官是八字中最具才华但也最难驾驭的神。有伤官的人：极聪明，有艺术天赋，但容易与权威冲突，不甘被管束。女命伤官多需注意感情关系。适合自由职业、艺术、技术创新领域。',
+    en_life:'The most brilliant but challenging Ten God. Highly intelligent, artistic, but clashes with authority. Thrives in creative or technical innovation.',
+  },
+  正财: {
+    color:'#7a6030', bg:'rgba(122,96,48,0.08)',
+    zh:'固定收入、妻子（男命）、稳定财富。务实勤劳，重视安全感。',
+    en:'Steady income, stability, spouse (for men). Practical and security-oriented.',
+    zh_life:'正财代表靠努力得来的财，薪资、固定收益。有正财的人：脚踏实地，重视物质安全，理财稳健。男命正财代表妻子，妻子贤惠持家。适合金融、会计、稳定职业。',
+    en_life:'Wealth earned through effort — salary, steady income. Practical, values security. For men, represents a devoted spouse. Suits finance or stable professions.',
+  },
+  偏财: {
+    color:'#854F0B', bg:'rgba(133,79,11,0.08)',
+    zh:'横财、投资、生意、父亲。大方慷慨，善于社交，机会主义。',
+    en:'Windfall, investment, business, father. Generous, sociable, opportunistic.',
+    zh_life:'偏财代表意外之财、生意所得。有偏财的人：善于抓机会，交际广，出手大方。适合做生意、销售、投资。偏财多的人钱财流动性强，来得快去得也快。',
+    en_life:'Unexpected gains, business income. Opportunity-minded, generous, socially gifted. Good for business, sales, or investments.',
+  },
+  正官: {
+    color:'#3C3489', bg:'rgba(60,52,137,0.08)',
+    zh:'职位、名声、丈夫（女命）、规则。正直负责，重视名誉，守规矩。',
+    en:'Career, status, husband (for women), rules. Upright, responsible, reputation-conscious.',
+    zh_life:'正官是命局中代表事业和地位的吉神。有正官的人：做事有原则，重视名誉，适合走仕途或大型企业。女命正官代表丈夫，丈夫正直有地位。正官也代表对规则和法律的尊重。',
+    en_life:'Auspicious star for career and status. Principled, reputation-conscious. For women, represents a respected husband. Suits government or corporate careers.',
+  },
+  七杀: {
+    color:'#8b2020', bg:'rgba(139,32,32,0.08)',
+    zh:'权力、压力、竞争、魄力。果断有魄力，但也带来压力和挑战。',
+    en:'Power, pressure, competition, boldness. Decisive, but brings stress and challenges.',
+    zh_life:'七杀是八字中最有力量的星之一，用好了是成大事的格局，用不好则带来压力和冲突。有七杀的人：天生有领导力，不怕挑战，适合竞争激烈的领域。七杀需要用食神来制约，才能发挥最大价值。',
+    en_life:'One of the most powerful Ten Gods — great for leadership when channeled well. Decisive, fearless. Needs Eating God to harness its power productively.',
+  },
+  正印: {
+    color:'#085041', bg:'rgba(8,80,65,0.08)',
+    zh:'母亲、学习、贵人、文化。稳重保守，重视名誉，有学识修养。',
+    en:'Mother, learning, mentors, culture. Stable, conservative, knowledgeable.',
+    zh_life:'正印是命局中最温暖的贵人星。有正印的人：得长辈和贵人帮助，学习能力强，有文化涵养。适合教育、文化、公职领域。正印也代表母亲的疼爱和庇护。命局有正印的人，一生都有人照顾和支持。',
+    en_life:'The warmest benefactor star. Supported by mentors and elders, strong learner, culturally refined. Suits education, culture, or public service.',
+  },
+  偏印: {
+    color:'#72243E', bg:'rgba(114,36,62,0.08)',
+    zh:'继母、偏门学问、宗教、灵感。聪明敏感，有灵性，但容易孤僻。',
+    en:'Unconventional knowledge, spirituality, intuition. Intelligent, intuitive, but can be isolated.',
+    zh_life:'偏印又称枭神，是灵性和另类智慧的象征。有偏印的人：思维独特，有第六感，对神秘学、宗教、艺术有天赋。但容易思虑过多，有时脱离现实。偏印遇食神为"枭神夺食"，需要特别注意。',
+    en_life:'Symbol of unconventional wisdom and spirituality. Unique thinker with strong intuition. Gifted in mysticism, religion, or arts. Can overthink or feel detached.',
+  },
+};
+
+const SS_COLOR_MAP = {
+  比肩:'#5a5a6a',劫财:'#8b3a1a',食神:'#4a7c59',伤官:'#2a4a7a',
+  正财:'#7a6030',偏财:'#854F0B',正官:'#3C3489',七杀:'#8b2020',
+  正印:'#085041',偏印:'#72243E',日主:'#b8922a',
+};
+const SS_BG_MAP = {
+  比肩:'rgba(90,90,106,0.08)',劫财:'rgba(139,58,26,0.08)',
+  食神:'rgba(74,124,89,0.08)',伤官:'rgba(42,74,122,0.08)',
+  正财:'rgba(122,96,48,0.08)',偏财:'rgba(133,79,11,0.08)',
+  正官:'rgba(60,52,137,0.08)',七杀:'rgba(139,32,32,0.08)',
+  正印:'rgba(8,80,65,0.08)',偏印:'rgba(114,36,62,0.08)',
+  日主:'rgba(184,146,42,0.08)',
+};
+
+let ssDepth = 'simple';
+function setDepthSS(d) {
+  ssDepth = d;
+  document.querySelectorAll('#tab1 .depth-btn').forEach((b,i)=>b.classList.toggle('active',i===(d==='simple'?0:1)));
+  document.getElementById('ss-legend-area').style.display = d==='deep'?'block':'none';
+}
+
+const SS_GROUPS = {
+  resource:{zh:'印星', en:'Resource', noteZh:'学习、保护、贵人、内在安全感', noteEn:'learning, protection, mentors, inner safety', members:['正印','偏印']},
+  power:{zh:'官杀', en:'Power', noteZh:'规则、压力、责任、地位与约束', noteEn:'rules, pressure, responsibility, status', members:['正官','七杀']},
+  wealth:{zh:'财星', en:'Wealth', noteZh:'现实、资源、金钱、关系中的责任感', noteEn:'reality, resources, money, relational responsibility', members:['正财','偏财']},
+  output:{zh:'食伤', en:'Output', noteZh:'表达、才华、创造力、反叛与释放', noteEn:'expression, talent, creativity, release', members:['食神','伤官']},
+  peer:{zh:'比劫', en:'Peers', noteZh:'自我、竞争、伙伴、独立性与边界', noteEn:'selfhood, competition, allies, independence', members:['比肩','劫财']},
+};
+
+function escapeAttr(v){ return String(v).replace(/'/g, "&#39;").replace(/"/g, '&quot;'); }
+
+function getShishenStats(pillars, dayTgName) {
+  const count = {};
+  const visible = [];
+  const hidden = [];
+  const weights = [1, 0.5, 0.25];
+  pillars.forEach((p,i)=>{
+    const tg = TG[p.ti];
+    const stemSS = i===2 ? '日主' : getShishen(dayTgName, tg);
+    visible.push({pos:i, char:tg, ss:stemSS, wx:WX_TG[p.ti], yy:YY_TG[p.ti]});
+    if(i!==2) count[stemSS] = (count[stemSS]||0) + 1;
+    const dz = DZ[p.di];
+    const cang = DZ_CANGGAN[dz] || [];
+    const items = cang.map((t,j)=>{
+      const ss = getShishen(dayTgName, t);
+      count[ss] = (count[ss]||0) + (weights[j] || 0.2);
+      return {stem:t, ss, weight:weights[j] || 0.2, role:j===0?'本气':(j===1?'中气':'余气')};
+    });
+    hidden.push({pos:i, branch:dz, items});
+  });
+  return {count, visible, hidden};
+}
+
+function groupTotals(count) {
+  const totals = {};
+  Object.entries(SS_GROUPS).forEach(([key,g])=>{
+    totals[key] = g.members.reduce((sum,m)=>sum+(count[m]||0),0);
+  });
+  return totals;
+}
+
+function getPatternInsight(count, dayTgName) {
+  const totals = groupTotals(count);
+  const sorted = Object.entries(totals).sort((a,b)=>b[1]-a[1]);
+  const topKey = sorted[0][0];
+  const secondKey = sorted[1][0];
+  const weakKey = sorted[sorted.length-1][0];
+  const top = SS_GROUPS[topKey];
+  const second = SS_GROUPS[secondKey];
+  const weak = SS_GROUPS[weakKey];
+  const dominantGod = Object.entries(count).filter(([k])=>k!=='日主').sort((a,b)=>b[1]-a[1])[0];
+  const dmWx = WX_TG[TG.indexOf(dayTgName)];
+  const zh = `这张命盘最突出的力量是「${top.zh}」，其次是「${second.zh}」。这代表它不是单一事件式的性格判断，而是一个长期重复的生命动力：人会反复围绕${top.noteZh}来理解自己，也会借由${second.noteZh}来处理现实。${dominantGod ? `其中最明显的十神是「${dominantGod[0]}」。` : ''}`;
+  const en = `The strongest pattern in this chart is ${top.en}, followed by ${second.en}. This is not a one-line personality label. It suggests a repeating life mechanism: the person tends to understand the self through ${top.noteEn}, while handling reality through ${second.noteEn}. ${dominantGod ? `The most visible Ten God is ${dominantGod[0]}.` : ''}`;
+  const zhSub = `日主为${dayTgName}${dmWx}。相对较弱的是「${weak.zh}」，所以后续深度解读可以重点观察：这个人在哪些地方过度使用强项，又在哪些地方缺少${weak.noteZh}。`;
+  const enSub = `The Day Master is ${dayTgName} ${dmWx}. The weakest group is ${weak.en}, so deeper reading should ask where the person overuses the strong pattern and where ${weak.noteEn} may be missing.`;
+  return {zh,en,zhSub,enSub, totals};
+}
+
+function showSSDetail(ss, char, pos, extraZh='', extraEn='') {
+  const info = SS_INFO[ss];
+  const col = SS_COLOR_MAP[ss]||'var(--fade)';
+  const det = document.getElementById('ss-detail');
+  if(!info) {
+    det.innerHTML = `<div style="color:var(--fade);font-size:0.85rem;line-height:1.8">${extraZh||ss}</div>`;
+    return;
+  }
+  det.innerHTML = `
+    <div style="font-size:0.7rem;letter-spacing:0.2em;color:${col};margin-bottom:0.6rem;font-family:'Noto Sans SC',sans-serif">
+      <span class="zh">${pos?pos+' '+char+' · ':''}<strong>${ss}</strong></span>
+      <span class="en" style="display:none">${pos?pos+' '+char+' · ':''}${ss}</span>
+    </div>
+    ${extraZh?`<div class="zh" style="font-size:0.82rem;line-height:1.85;color:var(--ink);margin-bottom:0.6rem">${extraZh}</div>`:''}
+    ${extraEn?`<div class="en" style="display:none;font-size:0.82rem;line-height:1.85;color:var(--ink);margin-bottom:0.6rem">${extraEn}</div>`:''}
+    <div class="zh" style="font-size:0.85rem;line-height:1.9;color:var(--fade);margin-bottom:0.5rem">${info.zh_life}</div>
+    <div class="en" style="display:none;font-size:0.85rem;line-height:1.9;color:var(--fade)">${info.en_life}</div>`;
+  if(currentLang==='en') setLang('en');
+}
+
+function renderShishen(pillars, dayTgName) {
+  const pLabels_zh = ['年干','月干','日干','时干'];
+  const pLabels_en = ['Year Stem','Month Stem','Day Stem','Hour Stem'];
+  const pDzLabels_zh = ['年支','月支','日支','时支'];
+  const pDzLabels_en = ['Year Branch','Month Branch','Day Branch','Hour Branch'];
+  const stats = getShishenStats(pillars, dayTgName);
+  const insight = getPatternInsight(stats.count, dayTgName);
+
+  let html = '<div style="margin-bottom:0.8rem">';
+  html += '<div class="wx-title zh">天干十神 · 外显力量</div>';
+  html += '<div class="wx-title en" style="display:none">HEAVENLY STEMS · VISIBLE PATTERN</div>';
+  html += '</div><div class="shishen-grid">';
+
+  stats.visible.forEach((v,i) => {
+    const col = SS_COLOR_MAP[v.ss]||'var(--fade)';
+    const bg = SS_BG_MAP[v.ss]||'transparent';
+    const wxClass = WX_CLASS[pillars[i].ti];
+    const extraZh = i===2 ? '日干是整张八字的中心，其他十神都以它为参照来判断。' : `${pLabels_zh[i]}属于外显层，通常更容易被别人看见，也更容易成为早期经历中的明显主题。`;
+    const extraEn = i===2 ? 'The Day Stem is the center of the chart. Every other Ten God is measured in relation to it.' : `${pLabels_en[i]} belongs to the visible layer, often easier for others to notice and easier to become an early life theme.`;
+    html += `<div class="ss-card" style="cursor:pointer" onclick="showSSDetail('${escapeAttr(v.ss)}','${escapeAttr(v.char)}','${escapeAttr(pLabels_zh[i])}','${escapeAttr(extraZh)}','${escapeAttr(extraEn)}')">
+      <div class="pillar-pos"><span class="zh">${pLabels_zh[i]}</span><span class="en" style="display:none">${pLabels_en[i]}</span></div>
+      <div class="ss-char ${wxClass}">${v.char}</div>
+      <div class="ss-name" style="color:${col};background:${bg}">${v.ss}</div>
+      <div class="ss-wx">${v.yy}${v.wx}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  html += '<div style="margin-bottom:0.8rem;margin-top:1rem">';
+  html += '<div class="wx-title zh">地支藏干 · 隐藏结构</div>';
+  html += '<div class="wx-title en" style="display:none">HIDDEN STEMS · INNER STRUCTURE</div>';
+  html += '</div><div class="canggan-wrap">';
+
+  stats.hidden.forEach((h,i)=>{
+    const p = pillars[i];
+    const wxClass = WX_DZ_CLASS[p.di];
+    html += `<div class="canggan-card">
+      <div class="canggan-title"><span class="zh">${pDzLabels_zh[i]}</span><span class="en" style="display:none">${pDzLabels_en[i]}</span></div>
+      <div class="canggan-main ${wxClass}">${h.branch}</div>`;
+    h.items.forEach(item=>{
+      const col = SS_COLOR_MAP[item.ss]||'var(--fade)';
+      const bg = SS_BG_MAP[item.ss]||'transparent';
+      const extraZh = `${h.branch}中藏${item.stem}，为${item.role}。这表示「${item.ss}」不是只停留在表面，而是藏在这个宫位/阶段的内部动机里。`;
+      const extraEn = `${h.branch} hides ${item.stem}. This means ${item.ss} is not only visible on the surface, but embedded in the inner motive of this branch.`;
+      html += `<div class="canggan-line" onclick="showSSDetail('${escapeAttr(item.ss)}','${escapeAttr(item.stem)}','${escapeAttr(pDzLabels_zh[i]+'藏干')}','${escapeAttr(extraZh)}','${escapeAttr(extraEn)}')" style="cursor:pointer">
+        <span class="canggan-stem">${item.stem}<span style="font-size:0.55rem;color:var(--fade);margin-left:2px">${item.role}</span></span>
+        <span class="canggan-ss" style="color:${col};background:${bg}">${item.ss}</span>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += `<div class="pattern-box">
+    <div class="pattern-title zh">结构洞察</div>
+    <div class="pattern-title en" style="display:none">PATTERN INSIGHT</div>
+    <div class="pattern-text zh">${insight.zh}</div>
+    <div class="pattern-text en" style="display:none">${insight.en}</div>
+    <div class="pattern-subtle zh">${insight.zhSub}</div>
+    <div class="pattern-subtle en" style="display:none">${insight.enSub}</div>
+  </div>`;
+
+  html += '<div style="margin-top:1.2rem;margin-bottom:0.5rem">';
+  html += '<div class="wx-title zh">十神结构分析 · 加权统计</div>';
+  html += '<div class="wx-title en" style="display:none">TEN GODS PATTERN · WEIGHTED</div>';
+  html += '</div>';
+
+  const maxTotal = Math.max(...Object.values(insight.totals), 1);
+  Object.entries(SS_GROUPS).forEach(([key,g])=>{
+    const total = insight.totals[key] || 0;
+    const col = SS_COLOR_MAP[g.members[0]]||'var(--fade)';
+    html += `<div class="wx-row">
+      <div style="width:7rem;font-size:0.72rem;color:var(--fade);font-family:'Noto Sans SC',sans-serif"><span class="zh">${g.zh}</span><span class="en" style="display:none">${g.en}</span></div>
+      <div class="wx-bar-bg">
+        <div class="wx-bar-fill" style="width:${total===0?0:Math.max(total/maxTotal*100,6)}%;background:${col}"></div>
+      </div>
+      <div class="wx-count">×${total.toFixed(total%1?1:0)}</div>
+    </div>`;
+  });
+
+  document.getElementById('ss-area').innerHTML = html;
+
+  let legHTML = '<div style="margin-top:1.5rem;margin-bottom:0.8rem">';
+  legHTML += '<div class="wx-title zh">十神详解（点击查看）</div>';
+  legHTML += '<div class="wx-title en" style="display:none">TEN GODS GUIDE</div>';
+  legHTML += '</div><div class="ss-legend">';
+  Object.entries(SS_INFO).forEach(([name,info])=>{
+    const col = SS_COLOR_MAP[name]||'var(--fade)';
+    legHTML += `<div class="ss-leg-item" onclick="showSSDetail('${escapeAttr(name)}','','')">
+      <div class="ss-leg-name" style="color:${col}">${name}</div>
+      <div class="ss-leg-desc zh">${info.zh}</div>
+      <div class="ss-leg-desc en" style="display:none">${info.en}</div>
+    </div>`;
+  });
+  legHTML += '</div>';
+  document.getElementById('ss-legend-area').innerHTML = legHTML;
+  if(currentLang==='en') setLang('en');
+}
+
+function showSS(ss, char, pos) {
+  showSSDetail(ss, char, pos);
+}
+
+
+
+
+// ========== FULL BAZI ANALYSIS ========== 
+const ELEMENT_SHENG = {'木':'火','火':'土','土':'金','金':'水','水':'木'};
+const ELEMENT_KE = {'木':'土','土':'水','水':'火','火':'金','金':'木'};
+const ELEMENT_SOURCE = {'木':'水','火':'木','土':'火','金':'土','水':'金'};
+const ELEMENT_OUTPUT = {'木':'火','火':'土','土':'金','金':'水','水':'木'};
+const ELEMENT_WEALTH = {'木':'土','火':'金','土':'水','金':'木','水':'火'};
+const ELEMENT_OFFICER = {'木':'金','火':'水','土':'木','金':'火','水':'土'};
+const SEASON_BY_BRANCH = {寅:'木',卯:'木',辰:'土',巳:'火',午:'火',未:'土',申:'金',酉:'金',戌:'土',亥:'水',子:'水',丑:'土'};
+const CHANGSHENG = {
+  甲:{亥:'长生',子:'沐浴',丑:'冠带',寅:'临官',卯:'帝旺',辰:'衰',巳:'病',午:'死',未:'墓',申:'绝',酉:'胎',戌:'养'},
+  丙:{寅:'长生',卯:'沐浴',辰:'冠带',巳:'临官',午:'帝旺',未:'衰',申:'病',酉:'死',戌:'墓',亥:'绝',子:'胎',丑:'养'},
+  戊:{寅:'长生',卯:'沐浴',辰:'冠带',巳:'临官',午:'帝旺',未:'衰',申:'病',酉:'死',戌:'墓',亥:'绝',子:'胎',丑:'养'},
+  庚:{巳:'长生',午:'沐浴',未:'冠带',申:'临官',酉:'帝旺',戌:'衰',亥:'病',子:'死',丑:'墓',寅:'绝',卯:'胎',辰:'养'},
+  壬:{申:'长生',酉:'沐浴',戌:'冠带',亥:'临官',子:'帝旺',丑:'衰',寅:'病',卯:'死',辰:'墓',巳:'绝',午:'胎',未:'养'},
+  乙:{午:'长生',巳:'沐浴',辰:'冠带',卯:'临官',寅:'帝旺',丑:'衰',子:'病',亥:'死',戌:'墓',酉:'绝',申:'胎',未:'养'},
+  丁:{酉:'长生',申:'沐浴',未:'冠带',午:'临官',巳:'帝旺',辰:'衰',卯:'病',寅:'死',丑:'墓',子:'绝',亥:'胎',戌:'养'},
+  己:{酉:'长生',申:'沐浴',未:'冠带',午:'临官',巳:'帝旺',辰:'衰',卯:'病',寅:'死',丑:'墓',子:'绝',亥:'胎',戌:'养'},
+  辛:{子:'长生',亥:'沐浴',戌:'冠带',酉:'临官',申:'帝旺',未:'衰',午:'病',巳:'死',辰:'墓',卯:'绝',寅:'胎',丑:'养'},
+  癸:{卯:'长生',寅:'沐浴',丑:'冠带',子:'临官',亥:'帝旺',戌:'衰',酉:'病',申:'死',未:'墓',午:'绝',巳:'胎',辰:'养'},
+};
+const CS_SCORE = {长生:1,沐浴:0.5,冠带:1,临官:2,帝旺:2,衰:-0.5,病:-1,死:-1.5,墓:0,绝:-2,胎:0,养:0.5};
+
+function elementNameEn(e){return {木:'Wood',火:'Fire',土:'Earth',金:'Metal',水:'Water'}[e]||e;}
+function relationLabel(dayWx, otherWx){
+  if(otherWx===dayWx) return '同类帮身';
+  if(ELEMENT_SOURCE[dayWx]===otherWx) return '生扶日主';
+  if(ELEMENT_OUTPUT[dayWx]===otherWx) return '泄秀输出';
+  if(ELEMENT_WEALTH[dayWx]===otherWx) return '财星耗身';
+  if(ELEMENT_OFFICER[dayWx]===otherWx) return '官杀克身';
+  return '中性';
+}
+function getStemBranchRows(pillars){
+  return [
+    {name:'年柱',tg:TG[pillars[0].ti],dz:DZ[pillars[0].di],tgWx:WX_TG[pillars[0].ti],dzWx:WX_DZ[pillars[0].di]},
+    {name:'月柱',tg:TG[pillars[1].ti],dz:DZ[pillars[1].di],tgWx:WX_TG[pillars[1].ti],dzWx:WX_DZ[pillars[1].di]},
+    {name:'日柱',tg:TG[pillars[2].ti],dz:DZ[pillars[2].di],tgWx:WX_TG[pillars[2].ti],dzWx:WX_DZ[pillars[2].di]},
+    {name:'时柱',tg:TG[pillars[3].ti],dz:DZ[pillars[3].di],tgWx:WX_TG[pillars[3].ti],dzWx:WX_DZ[pillars[3].di]},
+  ];
+}
+function assessDayStrength(pillars){
+  const dayStem = TG[pillars[2].ti];
+  const dayWx = WX_TG[pillars[2].ti];
+  const monthBranch = DZ[pillars[1].di];
+  const monthWx = SEASON_BY_BRANCH[monthBranch];
+  let lingScore=0, lingText='';
+  if(monthWx===dayWx){lingScore=2; lingText=`${dayStem}${dayWx}生于${monthBranch}月，月令属${monthWx}，与日主同气，这是得令，力量很强。`;}
+  else if(ELEMENT_SOURCE[dayWx]===monthWx){lingScore=1; lingText=`${dayStem}${dayWx}生于${monthBranch}月，月令${monthWx}能生日主，这是半得令，有根气支持。`;}
+  else if(ELEMENT_OFFICER[dayWx]===monthWx){lingScore=-1.5; lingText=`${dayStem}${dayWx}生于${monthBranch}月，月令${monthWx}克日主，季节之气对日主有压力，失令。`;}
+  else if(ELEMENT_OUTPUT[dayWx]===monthWx || ELEMENT_WEALTH[dayWx]===monthWx){lingScore=-1; lingText=`${dayStem}${dayWx}生于${monthBranch}月，月令${monthWx}会泄耗日主，得令不足。`;}
+  else {lingText=`${dayStem}${dayWx}生于${monthBranch}月，月令力量对日主影响中等。`;}
+
+  let support=0, drain=0, supportList=[], drainList=[];
+  pillars.forEach((p,i)=>{
+    const tg=TG[p.ti], dz=DZ[p.di], tgWx=WX_TG[p.ti], dzWx=WX_DZ[p.di];
+    if(i!==2){
+      if(tgWx===dayWx || ELEMENT_SOURCE[dayWx]===tgWx){support++; supportList.push(`${tg}${tgWx}`);} 
+      else {drain++; drainList.push(`${tg}${tgWx}`);}
+    }
+    if(dzWx===dayWx || ELEMENT_SOURCE[dayWx]===dzWx){support++; supportList.push(`${dz}${dzWx}`);} 
+    else {drain++; drainList.push(`${dz}${dzWx}`);}
+  });
+  const shiScore = support - drain*0.65;
+  let shiText = `帮身力量有：${supportList.length?supportList.join('、'):'不明显'}；克泄耗力量有：${drainList.length?drainList.join('、'):'不明显'}。`;
+  shiText += support>=drain ? '整体看生助略占优势，属于得势。' : '整体看克泄耗更多，属于失势。';
+
+  const dayBranch = DZ[pillars[2].di];
+  const cs = (CHANGSHENG[dayStem]||{})[dayBranch] || '平';
+  const diScore = CS_SCORE[cs] ?? 0;
+  const diText = `${dayStem}${dayWx}坐在日支${dayBranch}上，十二长生状态为“${cs}”。${diScore>0?'这说明日主在配偶宫/内在根基上有力，得地。':diScore<0?'这说明日主坐下根气不足，属于失地。':'这一点力量中等，不强不弱。'}`;
+  const total = lingScore + shiScore + diScore;
+  let level='中和';
+  if(total>=3.2) level='身强';
+  else if(total>=1.2) level='偏强';
+  else if(total<=-2.2) level='身弱';
+  else if(total<=-0.8) level='偏弱';
+  return {dayStem,dayWx,monthBranch,monthWx,lingScore,lingText,support,drain,supportList,drainList,shiScore,shiText,dayBranch,cs,diScore,diText,total,level};
+}
+function derivePattern(pillars, strength){
+  const dayStem = strength.dayStem;
+  const monthBranch = DZ[pillars[1].di];
+  const monthHidden = DZ_CANGGAN[monthBranch]||[];
+  const monthMain = monthHidden[0];
+  const monthMainSS = getShishen(dayStem, monthMain);
+  const stemsSS = pillars.map((p,i)=> i===2?'日主':getShishen(dayStem,TG[p.ti]));
+  let feature = `月支${monthBranch}藏干以${monthMain}为本气，${monthMain}对日主${dayStem}来说是${monthMainSS}，所以命局首先要从“${monthMainSS}”看格局基础。`;
+  let hasWealth = stemsSS.includes('正财') || stemsSS.includes('偏财');
+  let hasOfficer = stemsSS.includes('正官') || stemsSS.includes('七杀');
+  let hasOutput = stemsSS.includes('食神') || stemsSS.includes('伤官');
+  let pattern='';
+  if((strength.level==='身强'||strength.level==='偏强') && hasWealth && hasOfficer){
+    pattern='身强任财官';
+    feature += '天干又见财星与官杀，日主有根有力，能够承担现实责任、资源竞争与外部压力，属于“身强任财官”的方向。';
+  } else if((strength.level==='身强'||strength.level==='偏强') && hasOutput){
+    pattern='身强喜食伤泄秀';
+    feature += '日主偏强而见食伤，重点不在继续增强自己，而在把能量转化为表达、创造、技术、作品与影响力。';
+  } else if(strength.level==='身强'||strength.level==='偏强'){
+    pattern='身强取泄耗制';
+    feature += '日主偏强，格局重点是让过旺的自我力量有出口，宜看食伤、财星、官杀能否形成流通。';
+  } else if(strength.level==='身弱'||strength.level==='偏弱'){
+    pattern='身弱喜印比扶身';
+    feature += '日主偏弱，格局重点不宜先谈承担财官，而是先看印星、比劫能否补足根基与支持系统。';
+  } else {
+    pattern='中和格局';
+    feature += '日主力量接近中和，关键不在单纯补强或削弱，而在看五行是否流通、十神是否成局。';
+  }
+  return {monthBranch,monthHidden,monthMain,monthMainSS,stemsSS,pattern,feature};
+}
+function deriveUsefulGod(strength, wxC){
+  const dayWx = strength.dayWx;
+  const output = ELEMENT_OUTPUT[dayWx];
+  const wealth = ELEMENT_WEALTH[dayWx];
+  const officer = ELEMENT_OFFICER[dayWx];
+  const source = ELEMENT_SOURCE[dayWx];
+  let useful='', joy=[], avoid=[], reason='';
+  if(strength.level==='身强' || strength.level==='偏强'){
+    useful = output;
+    joy = [wealth, officer].filter((v,i,a)=>a.indexOf(v)===i);
+    avoid = [dayWx, source];
+    reason = `日主${strength.level}，最忌继续堆叠同类与印星。最需要的是把旺气流通出去，所以首看${output}；其次用${wealth}承接现实成果，用适量${officer}形成约束、目标与外部推动。`;
+  } else if(strength.level==='身弱' || strength.level==='偏弱'){
+    useful = source;
+    joy = [dayWx];
+    avoid = [wealth, officer, output].filter((v,i,a)=>a.indexOf(v)===i);
+    reason = `日主${strength.level}，不宜过早承担财官与消耗。最需要${source}来生扶日主，其次需要${dayWx}作为同类根气，让自己先站稳。`;
+  } else {
+    const missing = Object.entries(wxC).filter(([k,v])=>v===0).map(([k])=>k);
+    useful = missing[0] || output;
+    joy = [wealth, officer].filter((v,i,a)=>a.indexOf(v)===i);
+    avoid = [];
+    reason = `日主接近中和，用神重点在“流通”而不是单纯补强。若某一五行缺失，优先补足缺口，让整张命局形成循环。`;
+  }
+  return {useful,joy,avoid,reason};
+}
+function dominantElements(wxC){
+  const maxVal = Math.max(...Object.values(wxC));
+  return Object.entries(wxC).filter(([k,v])=>v===maxVal).map(([k])=>k);
+}
+function elementState(wxC, el){
+  const n = wxC[el]||0;
+  if(n===0) return '缺失';
+  if(n===1) return '偏弱';
+  if(n===2) return '有根';
+  if(n===3) return '偏旺';
+  return '过旺';
+}
+const ELEMENT_PSY = {
+  木:{core:'生长、方向、学习、突破、重新开始', lack:'缺木时，人容易缺少向外生长的力量，不是不想改变，而是不容易从旧结构里长出来。', excess:'木太旺时，想法和目标很多，容易急着推进，也容易对现实限制不耐烦。', medicine:'补木不是迷信地补颜色，而是建立成长系统：学习、阅读、自然、稳定引导、小目标、长期主义。'},
+  火:{core:'热情、表达、行动力、被看见、生命兴奋感', lack:'缺火时，人容易有想法但不容易点燃，情绪偏冷，行动需要外界温度和认可来启动。', excess:'火太旺时，表达和情绪都容易外放，急、躁、冲动，容易先燃烧后耗尽。', medicine:'补火是恢复表达和行动：舞台、运动、作品、社交、阳光、明确的小胜利。'},
+  土:{core:'稳定、承载、责任、照顾、安全感', lack:'缺土时，人容易缺少稳定感，想法和情绪不容易落地，需要建立节奏和现实支点。', excess:'土太旺时，稳定会变成沉重，包容会变成压抑，责任会变成困住自己的壳。', medicine:'调土不是继续忍耐，而是让稳定变得有流动：整理环境、减负、说出感受、把责任边界分清。'},
+  金:{core:'规则、边界、判断、执行、切割旧模式', lack:'缺金时，人容易不擅长拒绝、不擅长做清晰决定，事情容易拖在灰色地带。', excess:'金太旺时，人容易过度控制、过度评判，对自己和别人都比较硬。', medicine:'补金是训练边界和执行：规则、清单、时间表、明确拒绝、完成比完美更重要。'},
+  水:{core:'情绪流动、智慧、感受、沟通、弹性', lack:'缺水时，感受容易干住，话说不出来，情绪不流动，智慧和表达之间隔着一层。', excess:'水太旺时，情绪、担忧和外界压力容易淹过行动力，人会想很多但动不起来。', medicine:'调水是让情绪流动：写作、谈话、散步、睡眠、安静反思，而不是把感受一直压住。'}
+};
+const STEM_PSY = {
+  甲:'甲木像大树，核心是向上生长、建立方向和承担框架。',
+  乙:'乙木像藤蔓花草，核心是柔韧、连接、审美和适应环境。',
+  丙:'丙火像太阳，核心是照亮、表达、热情和被看见。',
+  丁:'丁火像灯烛，核心是细腻、专注、温暖和精神感受。',
+  戊:'戊土像山岳，核心是稳定、承担、守护和厚重感。',
+  己:'己土像田园之土，核心是滋养、包容、照顾和维持稳定。',
+  庚:'庚金像刀剑，核心是决断、原则、行动和切开混乱。',
+  辛:'辛金像珠玉，核心是敏感、审美、精准和自我打磨。',
+  壬:'壬水像江河，核心是流动、智慧、远见和大格局。',
+  癸:'癸水像雨露，核心是感受、直觉、细腻和内在渗透力。'
+};
+function buildKeyFeature(strength, wxC, missing, dom){
+  const domText = dom.length>1 ? dom.join('、')+'并重' : dom[0]+'最显';
+  let feature = domText;
+  if(missing.length) feature += `，${missing.join('、')}缺失`;
+  feature += `，日主${strength.dayStem}${strength.dayWx}${strength.level}`;
+  return feature;
+}
+function buildElementRows(wxC){
+  const rep = {木:'成长/突破',火:'热情/表达',土:'稳定/承担',金:'边界/执行',水:'情绪/流动'};
+  return ['木','火','土','金','水'].map(w=>{
+    const state = elementState(wxC,w);
+    let impact = '';
+    if(state==='缺失') impact = ELEMENT_PSY[w].lack;
+    else if(state==='偏弱') impact = `${w}偏弱，${ELEMENT_PSY[w].core}有，但不够稳定，需要被保护和训练。`;
+    else if(state==='有根') impact = `${w}有根，${ELEMENT_PSY[w].core}能够发挥，但要看是否被其他五行压住。`;
+    else impact = ELEMENT_PSY[w].excess;
+    return `<tr><td style="color:${WX_COLOR[w].fill}">${w}</td><td>×${wxC[w]}</td><td>${rep[w]}</td><td>${impact}</td></tr>`;
+  }).join('');
+}
+function buildEmotionalPattern(strength, wxC, missing, dom){
+  const day = strength.dayStem;
+  const dayBase = STEM_PSY[day] || '';
+  const domEl = dom[0];
+  let first = `${dayBase} 但这张盘不能只看日主，还要看它被什么环境包围。这里最突出的力量是${dom.join('、')}，它会把日主的本性染上一层很明显的情绪底色。`;
+  let second = '';
+  if((wxC['土']||0)>=3) second += '土重时，人会先稳住、先忍住、先承担。久了以后，稳定容易变成不想动，负责容易变成太多顾虑，情绪容易压进身体里。';
+  if((wxC['水']||0)>=3) second += '水重时，压力、担忧、想太多会变强，容易在还没有行动前就先被情绪淹没。';
+  if((wxC['金']||0)>=3) second += '金重时，判断力和规则感强，但也容易对自己太严，先批判再允许，先控制再表达。';
+  if((wxC['木']||0)>=3) second += '木重时，生长欲望强，想突破、想改变、想往前，但如果没有落地系统，也容易焦虑和急躁。';
+  if((wxC['火']||0)>=3) second += '火重时，表达欲和情绪反应都强，容易被点燃，也容易因为燃烧太快而疲惫。';
+  if(!second) second = `${domEl}的力量最明显，说明这个人的情绪并不是随机出现的，而是长期围绕“${ELEMENT_PSY[domEl].core}”这一组主题展开。`;
+  let miss = missing.length ? `命局缺${missing.join('、')}，不是简单少了某种元素，而是少了对应的生命能力：${missing.map(w=>`${w}代表${ELEMENT_PSY[w].core}`).join('；')}。` : '五行没有完全缺失，所以重点不是补一个空洞，而是让已有力量不要互相堵住。';
+  let strongWeak = (strength.level==='身弱'||strength.level==='偏弱') ? '日主偏弱时，真正的问题常常不是没有愿望，而是愿望容易被环境、评价、压力或责任压住。越被催促，越难自然发力；越被理解和滋养，反而越能恢复行动。' : (strength.level==='身强'||strength.level==='偏强') ? '日主偏强时，真正的问题常常不是没有力量，而是力量太集中，需要出口、目标和流动。否则就会变成固执、紧绷、控制或内耗。' : '日主中和时，关键不在强弱，而在流通。哪里堵住，哪里就会成为反复出现的人生卡点。';
+  return {first, second, miss, strongWeak};
+}
+function buildTransformation(useful, strength){
+  const u = useful.useful;
+  const joy = useful.joy || [];
+  let text = `这个命局的用神方向是${u}。但这里的“${u}”不应该被理解成简单的颜色、方位或物品，而是一种需要被补回来的生命能力：${ELEMENT_PSY[u]?.core || ''}。${ELEMENT_PSY[u]?.medicine || ''}`;
+  if(joy.length){
+    text += ` 喜神可参考${joy.join('、')}，意思是当${u}先被补起来之后，再用${joy.map(w=>`${w}的${ELEMENT_PSY[w]?.core || ''}`).join('、')}去承接，命局会更容易流通。`;
+  }
+  if(strength.level==='身弱'||strength.level==='偏弱'){
+    text += ' 对偏弱日主来说，顺序尤其重要：先扶住自己，再谈承担；先恢复生命力，再谈成就。';
+  }else if(strength.level==='身强'||strength.level==='偏强'){
+    text += ' 对偏强日主来说，重点不是继续增强自我，而是把力量转化成表达、作品、责任、财富或清晰行动。';
+  }
+  return text;
+}
+function buildBaziDeepAnalysis(pillars, wxC){
+  const strength = assessDayStrength(pillars);
+  const pattern = derivePattern(pillars, strength);
+  const useful = deriveUsefulGod(strength, wxC);
+  const rows = getStemBranchRows(pillars);
+  const gz = pillars.map(p=>TG[p.ti]+DZ[p.di]).join('　');
+  const wxText = ['木','火','土','金','水'].map(w=>`${w}×${wxC[w]}`).join('、');
+  const missing = Object.entries(wxC).filter(([k,v])=>v===0).map(([k])=>k);
+  const dom = dominantElements(wxC);
+  const maxVal = Math.max(...Object.values(wxC));
+  const keyFeature = buildKeyFeature(strength, wxC, missing, dom);
+  const usefulJoy = [useful.useful].concat(useful.joy).filter((v,i,a)=>v && a.indexOf(v)===i).join('、');
+  const avoidText = useful.avoid.length ? useful.avoid.join('、') : '无明显固定忌神，重点看岁运组合';
+  const emo = buildEmotionalPattern(strength, wxC, missing, dom);
+  const transform = buildTransformation(useful, strength);
+  const domSentence = dom.length>1 ? `数量上${dom.join('、')}同为最高，都是×${maxVal}。但还要结合月令看真正的气势，不能只按数量下结论。` : `数量上${dom[0]}最明显，为×${maxVal}。但五行旺弱仍要结合月令、位置和藏干一起看。`;
+  return `
+    <div class="divider"><span class="zh">完整命局分析</span><span class="en" style="display:none">Full Chart Reading</span></div>
+    <div class="analysis-alert zh">⚠️ <strong>命局关键提醒：</strong>${keyFeature}。这张盘最值得关注的，不只是“强弱”，而是这些力量会如何变成一个人的性格惯性、情绪反应和反复卡住的地方。</div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">你的八字</div>
+      <div class="analysis-body">${gz}</div>
+      <table class="analysis-table">
+        <tr><th></th><th>年柱</th><th>月柱</th><th>日柱 ⭐</th><th>时柱</th></tr>
+        <tr><th>天干</th>${rows.map(r=>`<td>${r.tg}（${YY_TG[TG.indexOf(r.tg)]}${r.tgWx}）</td>`).join('')}</tr>
+        <tr><th>地支</th>${rows.map(r=>`<td>${r.dz}（${YY_TG[DZ.indexOf(r.dz)%2]}${r.dzWx}）</td>`).join('')}</tr>
+      </table>
+    </div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">第一步：判断日主强弱</div>
+      <div class="analysis-body"><strong>① 得令：</strong>${strength.lingText}</div>
+      <div class="analysis-body"><strong>② 得势：</strong>${strength.shiText}</div>
+      <div class="analysis-body"><strong>③ 得地：</strong>${strength.diText}</div>
+      <div class="analysis-note">综合结论：此命局日主定性为 <span class="analysis-highlight">${strength.level}</span>。这不是只看五行数量，而是把季节、四柱生克、日支根气一起判断。</div>
+    </div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">第二步：命局最大特征</div>
+      <div class="analysis-body">五行分布：${wxText}。${domSentence} ${missing.length?`命局缺${missing.join('、')}，这个缺口会影响能量流通。`:`五行没有完全缺失，重点看哪一方过旺、哪一方被压住。`}</div>
+      <table class="analysis-table">
+        <tr><th>五行</th><th>数量</th><th>代表</th><th>性格/情绪影响</th></tr>
+        ${buildElementRows(wxC)}
+      </table>
+    </div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">第三步：看命局格局</div>
+      <div class="analysis-body">${pattern.feature}</div>
+      <div class="analysis-note">格局提示：<span class="analysis-highlight">${pattern.pattern}</span>。月令是整张命盘的根，月支藏干为 ${pattern.monthHidden.map(h=>`${h}（${getShishen(strength.dayStem,h)}）`).join('、')}。</div>
+    </div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">第四步：性格底色与情绪模式</div>
+      <div class="analysis-body">${emo.first}</div>
+      <div class="analysis-body">${emo.second}</div>
+      <div class="analysis-body">${emo.miss}</div>
+      <div class="analysis-note">${emo.strongWeak}</div>
+    </div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">第五步：用神与现实转化</div>
+      <div class="analysis-body">${useful.reason}</div>
+      <div class="analysis-note">用神方向：<span class="analysis-highlight">${useful.useful}</span>。喜神参考：${usefulJoy}。需要谨慎过度增加：${avoidText}。</div>
+      <div class="analysis-body" style="margin-top:0.8rem">${transform}</div>
+    </div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">核心总结</div>
+      <div class="analysis-body">这个命局的核心不是一句“好”或“不好”，而是看能量如何被使用。${keyFeature}，说明这个人反复卡住的地方，很可能不是能力本身，而是某一股力量太重、某一股力量缺位，导致性格和情绪形成固定回路。</div>
+      <div class="analysis-body">真正的改命，不是硬把自己变成另一个人，而是看见命局中最不流通的地方，然后在现实生活里补回对应的能力：该生长的地方让它生长，该表达的地方让它表达，该建立边界的地方建立边界，该流动的情绪让它流动。</div>
+    </div>
+    <div class="analysis-card en" style="display:none">
+      <div class="analysis-step-title">Full Chart Reading</div>
+      <div class="analysis-body">This version focuses on Chinese-style psychological BaZi interpretation. English reading can be expanded later.</div>
+    </div>`;
+}
+
+
+
+// ========== ZIWEI INTERPRETATION LAYER ==========
+// This layer is intentionally written for users, not only for chart technicians.
+// It turns palaces and stars into personality, emotion, life-pattern, and growth language.
+const ZW_STAR_MEANING = {
+  '紫微':'紫微代表主心骨、掌控感和自我定位。落入某宫时，那个领域容易成为一个人想要掌握、负责或证明自己的地方。',
+  '天机':'天机代表思考、变化、策略和敏感的观察力。它让人想得多、转得快，也容易因为想太多而不安。',
+  '太阳':'太阳代表表达、照亮、责任和被看见的愿望。它带来外放与承担，也容易因为想撑住别人而消耗自己。',
+  '武曲':'武曲代表执行、资源、结果和现实能力。它强调效率、纪律和物质安全，但也可能让人过度紧绷。',
+  '天同':'天同代表柔软、享受、孩子气和被照顾的需求。它让人重视舒适与情感安全，也容易逃避压力。',
+  '廉贞':'廉贞代表边界、欲望、判断和自我控制。它让人有原则、有吸引力，也容易陷入内在拉扯。',
+  '天府':'天府代表稳定、承载、资源库和安全感。它让人能守成、能照顾人，也可能过度求稳。',
+  '太阴':'太阴代表细腻、感受、记忆和内在安全。它让人敏感、有审美，但情绪容易往内收。',
+  '贪狼':'贪狼代表欲望、社交、探索和生命兴奋感。它让人有魅力、有兴趣，也容易分散或贪多。',
+  '巨门':'巨门代表语言、疑问、辩论和阴影意识。它让人会问、会说、会怀疑，也容易陷入口舌和反复思虑。',
+  '天相':'天相代表协调、体面、关系秩序和服务意识。它重视公平与合适的位置，也容易过度顾及别人。',
+  '天梁':'天梁代表保护、道德感、长辈缘和承受力。它让人愿意承担，也容易变得早熟或有拯救感。',
+  '七杀':'七杀代表突破、压力、行动力和强烈的求生感。它不是坏星，而是逼人长出力量的星。',
+  '破军':'破军代表打破旧结构、重启、冒险和不安分。它让人不愿困在原地，也容易经历反复推倒重来。',
+  '禄存':'禄存代表资源、积累和现实保障。它让此宫有保存、拥有、慢慢积累的力量。',
+  '文昌':'文昌代表学习、表达、文字和条理。它让此宫更容易通过语言、学习或证书获得优势。',
+  '文曲':'文曲代表审美、感受、表达和细腻才华。它让此宫带有艺术性和情绪表达力。',
+  '左辅':'左辅代表帮助、贵人、协作和支持系统。它让此宫较容易得到旁人的辅助。',
+  '右弼':'右弼代表协助、协调、贵人和关系补位。它让此宫不必完全靠自己硬撑。',
+  '化禄':'化禄代表顺势、资源、被喜欢和流动感。它让此宫更容易得到好感、机会或滋养。',
+  '化权':'化权代表掌控、执行、推动和影响力。它让此宫成为需要主动承担和发力的地方。',
+  '化科':'化科代表名声、学习、修饰和被认可。它让此宫更容易通过专业、表达和形象获得肯定。',
+  '化忌':'化忌代表卡点、执念、焦虑和反复牵动。它不是简单的坏，而是最需要觉察和转化的地方。'
+};
+
+const ZW_PALACE_DEEP = {
+  '命宫':'命宫看一个人的核心性格、第一反应和自我认同。这里不是问“你会遇到什么”，而是问“你用什么方式活着”。命宫里的星越强，这个领域越像你面对世界时戴上的第一副面孔。',
+  '兄弟':'兄弟宫不只看手足，也看同辈关系、竞争感和一个人如何感受身边人的支持。它会影响你在同龄人中是合作、比较、退让，还是保持距离。',
+  '夫妻':'夫妻宫看亲密关系模式，也看一个人如何与重要他人相处。它不只代表婚姻，更代表你如何投射期待、如何信任、如何在关系里保持自己。',
+  '子女':'子女宫看创造力、作品、孩子缘，也看一个人把生命力向外延伸的方式。对年轻人来说，它也常常对应兴趣、创作和表达出口。',
+  '财帛':'财帛宫看金钱、资源感和价值交换。它不只是“有没有钱”，而是你如何感到安全，如何定义价值，如何把能力变成现实回报。',
+  '疾厄':'疾厄宫看身体与心理压力的承载方式。它不是医学诊断，而是提醒你压力容易在哪里沉积，情绪容易如何进入身体。',
+  '迁移':'迁移宫看外部世界、离开熟悉环境后的表现，以及一个人在外界是否容易打开机会。它也代表人走出去以后，命运如何回应他。',
+  '仆役':'仆役宫看朋友、团队、合作对象和社会网络。它会显示一个人容易吸引什么样的人，也显示合作关系是助力还是消耗。',
+  '官禄':'官禄宫看事业方向、社会角色和成就方式。对学生来说，它也可以看长期能力、学习路线和未来想成为怎样的人。',
+  '田宅':'田宅宫看家庭根基、空间感、安全感和长期资产。它也代表一个人内在的“安放感”：我在哪里能真正放松下来。',
+  '福德':'福德宫看内心世界、精神能量、快乐能力和自我修复方式。这个宫很重要，因为它决定一个人有没有办法在无人看见时安顿自己。',
+  '父母':'父母宫看早年环境、长辈关系、被规训或被保护的方式。它也常常显示一个人从家庭系统里继承了什么期待。'
+};
+
+function zwStarText(stars){
+  const clean = (stars||[]).filter(Boolean);
+  if(clean.length===0){
+    return '此宫没有十四主星，传统上称为借对宫之力。它不是空白，而是说明这个领域不一定用单一、强烈的方式表现，常常要结合对宫和整体命盘来看。';
+  }
+  return clean.slice(0,5).map(n=>`<p><strong>${n}</strong>：${ZW_STAR_MEANING[n]||'这颗星会改变此宫的表现方式，需要结合整体命盘判断。'}</p>`).join('');
+}
+
+function zwSimpleStarNames(stars){
+  return (stars&&stars.length)?stars.join('、'):'无主星';
+}
+
+function buildPalaceReading(record){
+  if(!record) return '';
+  const base = ZW_PALACE_DEEP[record.palace] || '';
+  const starNames = zwSimpleStarNames(record.stars);
+  let tag = '';
+  if(record.isMing) tag += '<span style="background:var(--gold);color:var(--white);padding:1px 6px;margin-right:4px;font-size:0.62rem">命宫</span>';
+  if(record.isShen) tag += '<span style="background:var(--wood);color:var(--white);padding:1px 6px;margin-right:4px;font-size:0.62rem">身宫</span>';
+  return `
+    <div style="font-size:0.7rem;letter-spacing:0.2em;color:var(--gold);margin-bottom:0.55rem;font-family:'Noto Sans SC',sans-serif">
+      ${tag}<span class="zh">${record.palace} · ${record.dz} · ${starNames}</span>
+      <span class="en" style="display:none">${record.palace} · ${record.dz} · ${starNames}</span>
+    </div>
+    <div class="zh" style="font-size:0.86rem;line-height:1.95;color:var(--ink);font-weight:300">
+      <p style="margin-bottom:0.6rem">${base}</p>
+      ${zwStarText(record.stars)}
+      <p style="margin-top:0.6rem;color:var(--fade)">这一宫的重点不是孤立判断，而是看它如何和命宫、身宫、福德宫、官禄宫连成一条线：你怎样形成自己，怎样行动，怎样安顿内心，又怎样走向外部世界。</p>
+    </div>
+    <div class="en" style="display:none;font-size:0.85rem;line-height:1.9;color:var(--fade)">Detailed English interpretation will be expanded in the next version. This palace contains: ${starNames}.</div>`;
+}
+
+function buildZiweiNarrative(palaceRecords, mingPalace, shenPalace, juName){
+  const ming = palaceRecords[mingPalace];
+  const shen = palaceRecords[shenPalace];
+  const career = palaceRecords['官禄'];
+  const fortune = palaceRecords['福德'];
+  const wealth = palaceRecords['财帛'];
+  const spouse = palaceRecords['夫妻'];
+  function oneLine(r, label){
+    if(!r) return '';
+    return `<div class="interp-block"><div class="interp-title zh">${label}：${r.palace}在${r.dz}</div><div class="interp-body zh">主星：${zwSimpleStarNames(r.stars)}。${ZW_PALACE_DEEP[r.palace]||''}</div></div>`;
+  }
+  return `
+    <div class="divider"><span class="zh">紫微总览</span><span class="en" style="display:none">Zi Wei Overview</span></div>
+    <div class="interp-block" style="border-left-color:var(--gold)">
+      <div class="interp-title zh">命身核心</div>
+      <div class="interp-body zh">此盘为${juName}。命宫落在<strong>${ming?ming.dz:''}</strong>，身宫落在<strong>${shen?shen.dz:''}</strong>。命宫看“我是谁”，身宫看“我后来实际怎么行动”。如果命宫和身宫气质不同，一个人就容易出现内在想法与现实行动不完全一致的拉扯。</div>
+      <div class="interp-body en" style="display:none">Zi Wei overview is available in Chinese in this version.</div>
+    </div>
+    ${oneLine(ming,'性格底色')}
+    ${oneLine(shen,'行动模式')}
+    ${oneLine(fortune,'情绪与精神能量')}
+    ${oneLine(career,'事业/学习方向')}
+    ${oneLine(wealth,'资源与金钱模式')}
+    ${oneLine(spouse,'关系模式')}
+    <div class="interp-block" style="border-left-color:var(--red)">
+      <div class="interp-title zh">使用提醒</div>
+      <div class="interp-body zh">这一版紫微采用的是前端简化排盘，适合做性格、情绪和人生结构的体验型解读；若要达到专业排盘级别，后续还需要加入精确农历、闰月、安星全表、四化飞星、大小限和流年系统。</div>
+    </div>`;
+}
+
+let currentZiweiRecords = {};
+function showPalaceDeep(palace, ev){
+  document.querySelectorAll('.z-cell').forEach(c=>c.style.outline='');
+  if(ev && ev.currentTarget) ev.currentTarget.style.outline='1.5px solid var(--gold)';
+  const det=document.getElementById('z-detail');
+  det.innerHTML = buildPalaceReading(currentZiweiRecords[palace]);
+  det.scrollIntoView({behavior:'smooth', block:'nearest'});
+  if(currentLang==='en') setLang('en');
+}
+
+// ========== CALCULATE ==========
+function calculate(){
+  const y=parseInt(document.getElementById('year').value);
+  const m=parseInt(document.getElementById('month').value);
+  const d=parseInt(document.getElementById('day').value);
+  const hr=parseInt(document.getElementById('hour').value);
+  const gender=document.getElementById('gender').value;
+  if(!y||!d||isNaN(y)||isNaN(d)){
+    alert(currentLang==='zh'?'请填写出生年份和日期':'Please enter birth year and day');
+    return;
+  }
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('result').classList.remove('show');
+  setTimeout(()=>render(y,m,d,hr,gender),600);
+}
+
+function render(y,m,d,hr,gender){
+  // BAZI
+  const ygz=getYearGZ(y,m,d);
+  const mgz=getMonthGZ(y,m,d,ygz.ti);
+  const dgz=getDayGZ(y,m,d);
+  const hgz=getHourGZ(dgz.ti,hr);
+  const pillars=[ygz,mgz,dgz,hgz];
+
+  // WX count
+  const wxC={'木':0,'火':0,'土':0,'金':0,'水':0};
+  pillars.forEach(p=>{wxC[WX_TG[p.ti]]++;wxC[WX_DZ[p.di]]++;});
+  const dayTgName=TG[dgz.ti];
+
+  // Render pillars
+  const pNames_zh=['年柱','月柱','日柱','时柱'];
+  const pNames_en=['Year','Month','Day','Hour'];
+  const pRoles_zh=['祖辈·早年','父母·青年','本人·中年','子女·晚年'];
+  const pRoles_en=['Ancestry','Parents','Self','Children'];
+  let pHTML='<div class="pillars">';
+  pillars.forEach((p,i)=>{
+    const tClass=WX_CLASS[p.ti], dClass=WX_DZ_CLASS[p.di];
+    const isDay=i===2;
+    pHTML+=`<div class="pillar${isDay?' day-pillar':''}">
+      ${isDay?`<div class="day-mark zh">日主</div><div class="day-mark en" style="display:none">Self</div>`:''}
+      <div class="pillar-label">
+        <span class="zh">${pNames_zh[i]}</span>
+        <span class="en" style="display:none">${pNames_en[i]}</span>
+      </div>
+      <div class="pillar-char ${tClass}">${TG[p.ti]}</div>
+      <div class="pillar-char ${dClass}">${DZ[p.di]}</div>
+      <div class="pillar-wx ${tClass}">${WX_TG[p.ti]}</div>
+      <div class="pillar-wx ${dClass}">${WX_DZ[p.di]}</div>
+      <div style="font-size:0.6rem;color:var(--fade);margin-top:0.5rem;font-family:'Noto Sans SC',sans-serif">
+        <span class="zh">${pRoles_zh[i]}</span>
+        <span class="en" style="display:none">${pRoles_en[i]}</span>
+      </div>
+    </div>`;
+  });
+  pHTML+='</div>';
+  document.getElementById('pillars-area').innerHTML=pHTML;
+
+  // WX bars
+  const wxOrder=['木','火','土','金','水'];
+  const wxOrder_en=['Wood','Fire','Earth','Metal','Water'];
+  const maxWx=Math.max(...Object.values(wxC),1);
+  let bHTML='';
+  wxOrder.forEach((w,i)=>{
+    const cnt=wxC[w];
+    const missing=cnt===0;
+    const col=WX_COLOR[w];
+    bHTML+=`<div class="wx-row">
+      <div class="wx-name" style="color:${col.fill}">${w}</div>
+      <div class="wx-bar-bg">
+        <div class="wx-bar-fill" style="width:${cnt===0?'0':Math.max(cnt/maxWx*100,8)}%;background:${col.fill}"></div>
+      </div>
+      <div class="wx-count">
+        ×${cnt}
+        ${missing?`<span class="wx-missing zh">缺</span><span class="wx-missing en" style="display:none">0</span>`:''}
+      </div>
+    </div>`;
+  });
+  document.getElementById('wx-bars').innerHTML=bHTML;
+
+  // Deep content
+  const dm=DAYMASTER_INFO[dayTgName];
+  const sorted=Object.entries(wxC).sort((a,b)=>b[1]-a[1]);
+  const most=sorted[0][0], least=sorted[sorted.length-1][0];
+  let deepHTML=`
+    <div class="divider"><span class="zh">日主分析</span><span class="en" style="display:none">Day Master</span></div>
+    <div class="interp-block">
+      <div class="interp-title zh">${dm.zh}</div>
+      <div class="interp-title en" style="display:none">${dm.en}</div>
+      <div class="interp-body zh">${dm.zh_desc}</div>
+      <div class="interp-body en" style="display:none">${dm.en_desc}</div>
+    </div>
+    <div class="interp-block">
+      <div class="interp-title zh">命局特征</div>
+      <div class="interp-title en" style="display:none">Chart Pattern</div>
+      <div class="interp-body zh">五行最多：${most}（×${wxC[most]}）— ${WX_PERSONALITY[most].zh}<br>五行最少：${least}（×${wxC[least]}）— 需要补充${least}的能量</div>
+      <div class="interp-body en" style="display:none">Strongest element: ${wxOrder_en[wxOrder.indexOf(most)]} (×${wxC[most]}) — ${WX_PERSONALITY[most].en}<br>Weakest element: ${wxOrder_en[wxOrder.indexOf(least)]} (×${wxC[least]}) — needs ${wxOrder_en[wxOrder.indexOf(least)]} energy</div>
+    </div>`;
+  deepHTML += buildBaziDeepAnalysis(pillars, wxC);
+  document.getElementById('deep-content').innerHTML=deepHTML;
+
+  // SHISHEN
+  renderShishen(pillars, dayTgName);
+
+  // DAYUN
+  renderDayun(y,m,d,ygz,mgz,dgz,gender,pillars,wxC);
+
+  // ZIWEI
+  renderZiwei(y,m,d,hr,ygz.ti);
+
+  // FAMILY EMOTIONAL SCRIPT
+  renderTraumaLines(buildTraumaChart(pillars, wxC));
+
+  document.getElementById('loading').classList.remove('show');
+  document.getElementById('result').classList.add('show');
+  // 排盘完成后自动打开“家族剧本”，直接显示事业权威与综合判断。
+  showTab(4);
+  if(currentLang==='en') setLang('en');
+}
+
+function stageElementMeaning(el){
+  const map={
+    木:{zh:'生长、学习、方向、支持系统',en:'growth, learning, direction, support'},
+    火:{zh:'热情、行动、表达、被看见',en:'passion, action, expression, visibility'},
+    土:{zh:'稳定、责任、承载、落地',en:'stability, responsibility, grounding'},
+    金:{zh:'边界、判断、规则、执行',en:'boundaries, judgment, rules, execution'},
+    水:{zh:'情绪流动、语言、释放、创造出口',en:'emotional flow, language, release, creative outlet'}
+  };
+  return map[el]||{zh:'阶段能量',en:'stage energy'};
+}
+function stageTriggerBySS(ss){
+  const map={
+    正印:{line:'家族代偿 / 存在许可',en:'family compensation / permission to exist',note:'照顾、保护、学习与长辈系统被触发'},
+    偏印:{line:'家族代偿 / 内在追问',en:'family compensation / inner questioning',note:'特殊感受、孤独感、灵性与母系保护议题被触发'},
+    比肩:{line:'关系背叛 / 自我边界',en:'relational trust / self-boundary',note:'自我、同辈、竞争和边界议题被触发'},
+    劫财:{line:'关系背叛 / 资源竞争',en:'relational trust / resource competition',note:'争夺、比较、朋友合作与资源流失议题被触发'},
+    食神:{line:'情绪表达 / 行动力转向',en:'emotional expression / turning into action',note:'表达、才华、创作和情绪出口被打开'},
+    伤官:{line:'情绪表达 / 权威压迫',en:'emotional expression / authority pressure',note:'表达欲、反抗权威、突破旧规则的议题被触发'},
+    正财:{line:'价值证明 / 不配拥有',en:'value proof / unworthiness to receive',note:'现实成果、稳定资源、金钱与责任议题被触发'},
+    偏财:{line:'不配拥有 / 价值证明',en:'unworthiness to receive / value proof',note:'机会、商业、财富流动和父系资源议题被触发'},
+    正官:{line:'完美羞耻 / 权威压迫',en:'perfection shame / authority pressure',note:'规则、身份、评价和正确性议题被触发'},
+    七杀:{line:'安全防御 / 权威压迫',en:'safety defense / authority pressure',note:'压力、竞争、恐惧和强势权威议题被触发'},
+    日主:{line:'存在许可 / 自我确认',en:'permission to exist / self-confirmation',note:'自我位置、主体性和是否敢站出来被触发'}
+  };
+  return map[ss]||{line:'阶段功课',en:'stage lesson',note:'这一阶段会带来新的生命功课'};
+}
+function stageVerdict(tw,dw,wxC){
+  const counts=wxC||{};
+  const minVal=Math.min(...Object.values(counts));
+  const maxVal=Math.max(...Object.values(counts));
+  const missing=Object.entries(counts).filter(([k,v])=>v===minVal).map(([k])=>k);
+  const strongest=Object.entries(counts).filter(([k,v])=>v===maxVal).map(([k])=>k);
+  const els=[tw,dw];
+  if(els.some(e=>missing.includes(e))){
+    return {zh:'补足命局',en:'Balancing',cls:'v-good',body:'这一阶段带来的五行，正好补到命盘里较弱或缺失的力量。它不一定代表轻松，但很适合把长期卡住的部分打开。'};
+  }
+  if(els.every(e=>strongest.includes(e)) && maxVal>=3){
+    return {zh:'放大卡点',en:'Intensifying',cls:'v-bad',body:'这一阶段会加强命局中原本就很明显的力量。用得好是专注和突破，用不好则容易加重固执、压力或旧模式。'};
+  }
+  return {zh:'阶段转换',en:'Transition',cls:'v-mid',body:'这一阶段带来新的能量，不一定是单纯好坏，而是让人从旧模式里看见新的选择。'};
+}
+function renderDayun(y,m,d,ygz,mgz,dgz,gender,pillars,wxC){
+  const yearTi=ygz.ti;
+  const isYang=yearTi%2===0;
+  const isMale=gender==='M';
+  const forward=(isYang&&isMale)||(!isYang&&!isMale);
+  const qiyun=5; // simplified placeholder
+  const dayStem=TG[dgz.ti];
+  const currentYear=new Date().getFullYear();
+  let currentCard='';
+  let html=`<div class="interp-block">
+    <div class="interp-title zh">人生阶段 · 大运触发图谱</div>
+    <div class="interp-title en" style="display:none">Life Stages · Cycle Trigger Map</div>
+    <div class="interp-body zh">这里不只是看“大运好不好”，而是看每个十年阶段会补足命局、放大卡点，还是触发某条家族情绪脉络与事业权威主题。起运年龄目前仍为简化估算，重点用于阶段理解。</div>
+    <div class="interp-body en" style="display:none">This section does not simply label a cycle as good or bad. It shows whether each ten-year stage balances the chart, intensifies a blockage, or activates a family-emotional pattern. Starting age is still an estimate.</div>
+  </div>
+  <div style="margin-bottom:1.2rem">
+    <div class="interp-title zh" style="letter-spacing:0.2em;font-size:0.72rem;color:var(--fade);margin-bottom:0.5rem">约${qiyun}岁起运 · ${forward?'顺推':'逆推'}</div>
+    <div class="interp-title en" style="display:none;letter-spacing:0.1em;font-size:0.72rem;color:var(--fade);margin-bottom:0.5rem">Cycles begin ~age ${qiyun} · ${forward?'Forward':'Reverse'} sequence</div>
+  </div>
+  <div class="dayun-list">`;
+  for(let i=0;i<8;i++){
+    const ti=forward?(mgz.ti+1+i)%10:(mgz.ti-1-i+10)%10;
+    const di=forward?(mgz.di+1+i)%12:(mgz.di-1-i+12)%12;
+    const ageS=qiyun+i*10;
+    const ageE=ageS+9;
+    const yrS=y+ageS, yrE=y+ageE;
+    const isNow=yrS<=currentYear&&currentYear<=yrE;
+    const stem=TG[ti], branch=DZ[di];
+    const tw=WX_TG[ti], dw=WX_DZ[di];
+    const stemSS=getShishen(dayStem, stem);
+    const branchMain=DZ_BENQI[branch];
+    const branchSS=getShishen(dayStem, branchMain);
+    const trigger=stageTriggerBySS(stemSS==='日主'?branchSS:stemSS);
+    const verdict=stageVerdict(tw,dw,wxC);
+    const tcol=WX_COLOR[tw].fill, dcol=WX_COLOR[dw].fill;
+    const e1=stageElementMeaning(tw), e2=stageElementMeaning(dw);
+    const stageBody=`${stem}${branch}阶段，天干属${tw}，地支属${dw}。${tw}对应${e1.zh}，${dw}对应${e2.zh}。对日主${dayStem}来说，天干${stem}是${stemSS}，地支本气${branchMain}是${branchSS}，所以这个阶段容易触发「${trigger.line}」相关课题。事业权威层面，这一步也会把${trigger.note}转成现实中的责任、表达、资格、资源或评价主题。${verdict.body}`;
+    const stageWork=`这个阶段真正要看的不是运气，而是：当${trigger.note}时，你是继续用旧方式反应，还是开始建立新的回应方式？尤其要观察自己如何面对成功、评价、权威和被看见。`;
+    if(isNow){
+      currentCard=`<div class="interp-block" style="border-color:var(--gold)">
+        <div class="interp-title zh">当前阶段：${stem}${branch}（${yrS}–${yrE}）</div>
+        <div class="interp-title en" style="display:none">Current Stage: ${stem}${branch} (${yrS}–${yrE})</div>
+        <div class="interp-body zh">${stageBody}<br><br><b>阶段功课：</b>${stageWork}</div>
+        <div class="interp-body en" style="display:none">This stage activates ${trigger.en}. It may either balance the chart or intensify an existing pattern. The real question is not whether it is lucky, but how you respond when this theme appears.</div>
+      </div>`;
+    }
+    html+=`<div class="dayun-item${isNow?' now':''}" onclick="this.classList.toggle('open')">
+      <div class="dy-gz"><span style="color:${tcol}">${stem}</span><span style="color:${dcol}">${branch}</span></div>
+      <div class="dayun-info">
+        <div class="dayun-age"><span class="zh">${ageS}–${ageE}岁</span><span class="en" style="display:none">Age ${ageS}–${ageE}</span>${isNow?`<span style="font-size:0.6rem;background:var(--gold);color:var(--white);padding:1px 5px;margin-left:0.4rem">当前</span>`:''}</div>
+        <div class="dayun-yr">${yrS}–${yrE}</div>
+      </div>
+      <div>
+        <span class="dayun-verdict ${verdict.cls}"><span class="zh">${verdict.zh}</span><span class="en" style="display:none">${verdict.en}</span></span>
+        <div style="font-size:0.62rem;color:var(--fade);margin-top:4px" class="zh">触发：${trigger.line}</div>
+        <div style="display:none;font-size:0.62rem;color:var(--fade);margin-top:4px" class="en">Triggers: ${trigger.en}</div>
+      </div>
+    </div>
+    <div class="dayun-detail">
+      <span class="zh"><b>阶段能量：</b>${stageBody}<br><br><b>阶段功课：</b>${stageWork}</span>
+      <span class="en" style="display:none"><b>Stage energy:</b> ${stem}${branch} activates ${trigger.en}. It is less about luck and more about how this theme asks you to respond differently.</span>
+    </div>`;
+  }
+  html+='</div>';
+  document.getElementById('dayun-area').innerHTML=currentCard+html;
+}
+
+function renderZiwei(y,m,d,hr,yearTi){
+  const {lm,ld}=solarToLunar(y,m,d);
+  const hourDz=DZ[hr];
+  const yearTgName=TG[yearTi];
+
+  const mingIdx=getMingong(lm,hourDz);
+  const mingTgIdx=getMingongTG(yearTgName,mingIdx);
+  const ju=getJu(TG[mingTgIdx],DZ[mingIdx]);
+  const juNames={2:'水二局',3:'木三局',4:'金四局',5:'土五局',6:'火六局'};
+  const juNamesEn={2:'Water 2',3:'Wood 3',4:'Metal 4',5:'Earth 5',6:'Fire 6'};
+
+  const shengIdx=(mingIdx+hr)%12;
+  const ziweiIdx=getZiweiPos(ju,ld);
+  const tianfuIdx=getTianfuPos(ziweiIdx);
+  const mainStars=getMainStars(ziweiIdx,tianfuIdx);
+
+  // Sihua
+  const sh=SIHUA[yearTgName]||{};
+  const starPos={};
+  Object.values(mainStars).forEach((stars,_)=>{
+    Object.keys(mainStars).forEach(idx=>{
+      mainStars[idx].forEach(s=>{starPos[s.n]=parseInt(idx);});
+    });
+  });
+
+  // Aux stars
+  const luzunMap={甲:'寅',乙:'卯',丙:'巳',丁:'午',戊:'巳',己:'午',庚:'申',辛:'酉',壬:'亥',癸:'子'};
+  const luzun=DZ.indexOf(luzunMap[yearTgName]);
+  const wenchang=(DZ.indexOf('辰')+hr)%12;
+  const wenqu=(DZ.indexOf('戌')-hr+12)%12;
+  const zuofu=(DZ.indexOf('辰')+lm-1)%12;
+  const youbi=(DZ.indexOf('戌')-lm+1+12)%12;
+
+  // Mark sihua on stars
+  const sihauMark={};
+  if(sh.禄){const p=starPos[sh.禄];if(p!==undefined)sihauMark[p]=(sihauMark[p]||[]). concat([{n:'化禄',type:'hua'}]);}
+  if(sh.权){const p=starPos[sh.权];if(p!==undefined)sihauMark[p]=(sihauMark[p]||[]).concat([{n:'化权',type:'hua'}]);}
+  if(sh.忌){const p=starPos[sh.忌];if(p!==undefined)sihauMark[p]=(sihauMark[p]||[]).concat([{n:'化忌',type:'bad'}]);}
+
+  const palaceNames=['命宫','父母','福德','田宅','官禄','仆役','迁移','疾厄','财帛','子女','夫妻','兄弟'];
+
+  // Build grid
+  const palaceRecords = {};
+  const layout=[
+    {dz:'巳',r:1,c:1},{dz:'午',r:1,c:2},{dz:'未',r:1,c:3},{dz:'申',r:1,c:4},
+    {dz:'辰',r:2,c:1},{center:true,r:2,c:2},{dz:'酉',r:2,c:4},
+    {dz:'卯',r:3,c:1},{dz:'戌',r:3,c:4},
+    {dz:'寅',r:4,c:1},{dz:'丑',r:4,c:2},{dz:'子',r:4,c:3},{dz:'亥',r:4,c:4},
+  ];
+
+  // Palace assignments
+  const palaceByDz={};
+  palaceNames.forEach((p,i)=>{
+    const dzIdx=(mingIdx+i)%12;
+    palaceByDz[DZ[dzIdx]]={palace:p,dzIdx,
+      isMing:i===0,isShen:dzIdx===shengIdx};
+  });
+
+  let gridHTML='<div class="interp-block" style="border-left-color:var(--gold);margin-bottom:1rem"><div class="interp-title zh">点击宫位查看具体解释</div><div class="interp-body zh">点击十二宫中的任意一格，下方会显示该宫位、星曜与性格情绪/现实领域的对应解读。</div><div class="interp-title en" style="display:none">Click a palace</div></div><div class="ziwei-grid">';
+  layout.forEach(item=>{
+    if(item.center){
+      gridHTML+=`<div class="z-cell z-center" style="grid-row:2/4;grid-column:2/4">
+        <div style="font-size:0.7rem;color:var(--fade);letter-spacing:0.15em">${y}年${m}月${d}日</div>
+        <div style="font-size:0.65rem;color:var(--line);margin-top:2px;font-family:'Noto Sans SC',sans-serif">${juNames[ju]||'木三局'}</div>
+        <div style="height:0.5px;background:var(--line);width:60%;margin:6px 0"></div>
+        <div style="font-size:0.65rem;color:var(--fade)">
+          <span class="zh">命宫：${DZ[mingIdx]} 身宫：${DZ[shengIdx]}</span>
+          <span class="en" style="display:none">Life: ${DZ[mingIdx]} Body: ${DZ[shengIdx]}</span>
+        </div>
+      </div>`;
+      return;
+    }
+
+    const pInfo=palaceByDz[item.dz];
+    if(!pInfo){gridHTML+=`<div class="z-cell" style="grid-row:${item.r};grid-column:${item.c}"></div>`;return;}
+
+    const dzIdx=pInfo.dzIdx;
+    const stars=mainStars[dzIdx]||[];
+    const huaStars=sihauMark[dzIdx]||[];
+    const auxHere=[];
+    if(dzIdx===luzun) auxHere.push({n:'禄存',type:'aux'});
+    if(dzIdx===wenchang) auxHere.push({n:'文昌',type:'aux'});
+    if(dzIdx===wenqu) auxHere.push({n:'文曲',type:'aux'});
+    if(dzIdx===zuofu) auxHere.push({n:'左辅',type:'aux'});
+    if(dzIdx===youbi) auxHere.push({n:'右弼',type:'aux'});
+
+    const markHTML=pInfo.isMing?`<span class="z-mark" style="background:var(--gold);color:var(--white)">命</span>`:
+                   pInfo.isShen?`<span class="z-mark" style="background:var(--wood);color:var(--white)">身</span>`:'';
+
+    let starsHTML='';
+    [...stars,...huaStars,...auxHere].forEach(s=>{
+      const col=s.type==='main'?(STAR_COLOR[s.n]||{c:'var(--fade)',bg:'transparent'}):
+                s.type==='hua'?HUA_COLOR:
+                s.type==='bad'?BAD_COLOR:AUX_COLOR;
+      starsHTML+=`<span class="z-star" style="color:${col.c};background:${col.bg}">${s.n}</span>`;
+    });
+    if(!starsHTML) starsHTML=`<span style="font-size:0.6rem;color:var(--line)">空</span>`;
+
+    const allStars = [...stars,...huaStars,...auxHere].map(s=>s.n);
+    palaceRecords[pInfo.palace] = {palace:pInfo.palace,dz:item.dz,stars:allStars,isMing:pInfo.isMing,isShen:pInfo.isShen};
+
+    gridHTML+=`<div class="z-cell${pInfo.isMing?' z-ming':''}${pInfo.isShen?' z-shen':''}" 
+      style="grid-row:${item.r};grid-column:${item.c}"
+      onclick="showPalaceDeep('${pInfo.palace}', event)">
+      <div class="z-palace">
+        <span class="zh">${pInfo.palace}</span>
+        <span class="en" style="display:none">${pInfo.palace}</span>
+        ${markHTML}
+      </div>
+      <div class="z-dz">${item.dz}</div>
+      <div class="z-stars">${starsHTML}</div>
+    </div>`;
+  });
+  gridHTML+='</div>';
+  currentZiweiRecords = palaceRecords;
+  document.getElementById('ziwei-area').innerHTML=gridHTML;
+  if(palaceByDz[DZ[mingIdx]]){
+    document.getElementById('z-detail').innerHTML = buildPalaceReading(palaceRecords[palaceByDz[DZ[mingIdx]].palace]);
+  }
+  const summaryArea = document.getElementById('ziwei-summary-area');
+  if(summaryArea){
+    summaryArea.innerHTML = buildZiweiNarrative(palaceRecords, palaceByDz[DZ[mingIdx]].palace, palaceByDz[DZ[shengIdx]].palace, juNames[ju]||'木三局');
+  }
+  if(currentLang==='en') setLang('en');
+}
+
+function showPalace(palace,dz,zh,en){
+  document.querySelectorAll('.z-cell').forEach(c=>c.style.outline='');
+  const el=event.currentTarget;
+  el.style.outline='1.5px solid var(--gold)';
+  const det=document.getElementById('z-detail');
+  det.innerHTML=`
+    <div style="font-size:0.7rem;letter-spacing:0.2em;color:var(--gold);margin-bottom:0.5rem;font-family:'Noto Sans SC',sans-serif">
+      <span class="zh">${palace} · ${dz}</span>
+      <span class="en" style="display:none">${palace} · ${dz}</span>
+    </div>
+    <div class="zh" style="font-size:0.85rem;line-height:1.9;color:var(--fade)">${zh}</div>
+    <div class="en" style="display:none;font-size:0.85rem;line-height:1.9;color:var(--fade)">${en}</div>`;
+  if(currentLang==='en') setLang('en');
+}
+
+
+// ========== V8 OVERRIDE: MORE TARGETED PSYCHOLOGICAL BAZI READING ==========
+function relElementMap(dayWx){
+  const sourceMap = {木:'水',火:'木',土:'火',金:'土',水:'金'};
+  const outputMap = {木:'火',火:'土',土:'金',金:'水',水:'木'};
+  const wealthMap = {木:'土',火:'金',土:'水',金:'木',水:'火'};
+  const officerMap = {木:'金',火:'水',土:'木',金:'火',水:'土'};
+  return {印星:sourceMap[dayWx], 比劫:dayWx, 食伤:outputMap[dayWx], 财星:wealthMap[dayWx], 官杀:officerMap[dayWx]};
+}
+function relationOfElement(dayWx, el){
+  const m = relElementMap(dayWx);
+  for(const [k,v] of Object.entries(m)){ if(v===el) return k; }
+  return '';
+}
+function relationMeaning(rel){
+  return {
+    印星:'支持系统、学习能力、被理解、被滋养、贵人和安全感',
+    比劫:'自我力量、同伴、竞争、主见和坚持',
+    食伤:'表达、创造、输出、语言、作品和情绪出口',
+    财星:'现实目标、资源、金钱、责任、执行结果和外部世界',
+    官杀:'规则、压力、评价、纪律、恐惧、挑战和社会要求'
+  }[rel] || '';
+}
+function relationTone(rel, state, strengthLevel){
+  const weak = strengthLevel==='身弱'||strengthLevel==='偏弱';
+  const strong = strengthLevel==='身强'||strengthLevel==='偏强';
+  if(state==='缺失'){
+    return {
+      印星:'印星缺，最明显的问题不是没人帮，而是内在很难真正感觉到“我被托住”。人容易靠硬撑、靠结果证明自己，而不是先从支持和理解里恢复力量。',
+      比劫:'比劫缺，自我支点不足，容易缺少同伴感和底气。遇到压力时，第一反应可能不是坚持，而是退回去、怀疑自己或等外界确认。',
+      食伤:'食伤缺，表达出口不足。想法、情绪和才华可能都在里面，但不容易顺畅说出来、做出来、写出来，于是内在会有一种堵住的感觉。',
+      财星:'财星缺，不一定是不重视现实，而是现实目标不容易自然落地。人可能知道很多、想很多，但需要更具体的任务、反馈和结果感。',
+      官杀:'官杀缺，外部规则和压力感不强时，人容易缺少被推动的力量。需要清晰边界和阶段性要求，否则容易散。'
+    }[rel] || '';
+  }
+  if(state==='过旺' || state==='偏旺'){
+    return {
+      印星: strong ? '印星太重时，人容易一直吸收、一直想明白，却不一定行动。支持变成保护，学习变成拖延，安全感反而让人不愿离开原来的壳。' : '印星旺对偏弱日主是重要支持，但如果过度，也会让人依赖保护和解释，行动被放慢。',
+      比劫: strong ? '比劫旺时，自我力量强，主见重，不容易服输。但如果没有出口，容易变成固执、对抗、竞争感强，或者什么都想自己扛。' : '比劫旺能帮偏弱日主站住，是很重要的底气，但也要防止因为比较和竞争而紧绷。',
+      食伤: '食伤旺时，表达、反应和创造力强，但情绪也容易从嘴上、作品里或行为里直接冲出来。需要把输出变成作品，而不是变成消耗。',
+      财星: weak ? '财星旺而日主偏弱时，现实任务、金钱、责任和结果会压得很重。人不是没有能力，而是容易被“必须做好”拖住。' : '财星旺而日主能担时，现实感、资源感和目标感强，适合把能力转成成果。但也要防止把价值完全绑在结果上。',
+      官杀: weak ? '官杀旺而日主偏弱时，压力、评价、规则和恐惧感会很强。越被要求，越容易紧张；越想证明，越容易失去自然的行动力。' : '官杀旺而日主能担时，有挑战、有纪律、有上升压力，适合在规则和竞争中成事。但要避免长期绷紧。'
+    }[rel] || '';
+  }
+  return {
+    印星:'印星有根，说明支持、学习和被滋养的力量存在，关键是能不能真正用它来恢复自己，而不是只停在理解层面。',
+    比劫:'比劫有根，说明这个人有自己的主见和底气。关键是把这股力量用在坚持和行动上，而不是用在内耗或对抗上。',
+    食伤:'食伤有根，说明表达和创造力有出口。越能把感受转成语言、作品和行动，命局越流通。',
+    财星:'财星有根，说明现实感和目标感存在。关键是目标要具体而不压迫，让结果推动人，而不是定义人。',
+    官杀:'官杀有根，说明规则、压力和挑战会成为人生主题。用得好是纪律和上升力，用不好就是焦虑和自我压迫。'
+  }[rel] || '';
+}
+function stateOfRel(dayWx, wxC, rel){
+  const el = relElementMap(dayWx)[rel];
+  return {el, n:wxC[el]||0, state:elementState(wxC, el)};
+}
+function buildTargetedKeyFeature(strength, wxC, missing, dom){
+  const day = strength.dayStem;
+  const dayWx = strength.dayWx;
+  const rels = ['印星','比劫','食伤','财星','官杀'].map(r=>({rel:r, ...stateOfRel(dayWx, wxC, r)}));
+  const high = rels.filter(x=>x.n>=3).map(x=>`${x.rel}${x.el}偏重`);
+  const zero = rels.filter(x=>x.n===0).map(x=>`${x.rel}${x.el}缺位`);
+  let line = `${day}${dayWx}日主${strength.level}`;
+  if(high.length) line += `，${high.join('、')}`;
+  if(zero.length) line += `，${zero.join('、')}`;
+  if(!high.length && !zero.length) line += `，五行表面较全，重点看月令与流通`;
+  return line;
+}
+function dayMasterSeasonSentence(strength, pillars){
+  const day = strength.dayStem;
+  const dayWx = strength.dayWx;
+  const monthDz = DZ[pillars[1].di];
+  const monthWx = WX_DZ[pillars[1].di];
+  const monthRel = relationOfElement(dayWx, monthWx);
+  const base = STEM_PSY[day] || `${day}${dayWx}有自己的底色。`;
+  let env = `月令在${monthDz}，属${monthWx}，对${day}${dayWx}来说是${monthRel || '环境力量'}。月令不是普通一项，它像整张命盘的气候，决定这个日主是在什么环境里发力。`;
+  if(monthRel==='印星') env += '所以这张盘的第一感觉不是孤军奋战，而是需要从学习、理解、保护和支持里长出力量。';
+  if(monthRel==='比劫') env += '所以自我力量和同类力量很明显，主见、竞争、坚持会成为底色。';
+  if(monthRel==='食伤') env += '所以表达、输出和把感受变成作品，会成为这张盘流通的关键。';
+  if(monthRel==='财星') env += '所以现实任务、资源、结果和责任感很早就会压到日主身上。';
+  if(monthRel==='官杀') env += '所以压力、规则、评价和被要求，是这张盘最先感受到的外部气候。';
+  return `${base} ${env}`;
+}
+function buildRelationRows(strength, wxC){
+  const dayWx = strength.dayWx;
+  return ['印星','比劫','食伤','财星','官杀'].map(rel=>{
+    const {el,n,state} = stateOfRel(dayWx, wxC, rel);
+    return `<tr><td>${rel}</td><td style="color:${WX_COLOR[el].fill}">${el}</td><td>×${n}</td><td>${relationMeaning(rel)}</td><td>${relationTone(rel,state,strength.level)}</td></tr>`;
+  }).join('');
+}
+function buildTargetedProblem(strength, wxC, missing){
+  const dayWx = strength.dayWx;
+  const rels = ['印星','比劫','食伤','财星','官杀'].map(r=>({rel:r, ...stateOfRel(dayWx, wxC, r)}));
+  const weak = strength.level==='身弱'||strength.level==='偏弱';
+  const strong = strength.level==='身强'||strength.level==='偏强';
+  const heavy = rels.filter(x=>x.n>=3).sort((a,b)=>b.n-a.n);
+  const absent = rels.filter(x=>x.n===0);
+  let p1 = '';
+  if(weak){
+    const pressure = rels.filter(x=>['财星','官杀','食伤'].includes(x.rel) && x.n>=2).map(x=>x.rel);
+    p1 = pressure.length ? `这个命局最容易卡住的地方，是日主还没有完全站稳，但${pressure.join('、')}已经在要求它承担。现实里就会表现成：明明有想法，却容易被任务、评价、责任或结果压住。` : '这个命局偏弱，最重要的不是立刻冲出去证明自己，而是先找到能让日主恢复力量的支持系统。';
+  }else if(strong){
+    p1 = '这个命局力量不缺，真正的问题是力量是否有出口。力量太集中时，人会显得能扛、能忍、能控制，但内在容易紧绷，情绪和创造力反而不流动。';
+  }else{
+    p1 = '这个命局不是单纯强弱问题，而是流通问题。哪一股力量过重，哪一股力量缺位，那里就会变成人生反复出现的卡点。';
+  }
+  let p2 = heavy.length ? `最重的力量是${heavy.map(x=>`${x.rel}（${x.el}×${x.n}）`).join('、')}。${heavy.map(x=>relationTone(x.rel, x.state, strength.level)).join('')}` : '没有某一组关系特别压倒性，说明这张盘需要从整体流通看，而不是抓单一标签。';
+  let p3 = absent.length ? `缺位的力量是${absent.map(x=>`${x.rel}（${x.el}）`).join('、')}。这不是说人生一定没有这些东西，而是这些能力不会自动长出来，需要在现实中刻意训练。` : '五行没有完全缺失，所以不必执着于“缺什么”，重点是看哪一种力量过度占位，哪一种力量被压住。';
+  return {p1,p2,p3};
+}
+function realLifeMedicineForElement(el, rel, strengthLevel){
+  const base = {
+    木:'建立成长系统：稳定学习、阅读、自然、导师、长期目标、小步推进。它补的是方向感和重新开始的能力。',
+    火:'建立表达系统：运动、舞台、作品、社交、小胜利和被看见的机会。它补的是热情、行动和生命兴奋感。',
+    土:'建立落地系统：作息、空间整理、任务拆分、现实支点。土不是继续忍，而是把生活安顿下来。',
+    金:'建立边界系统：规则、清单、截止日期、拒绝、完成、切割旧模式。它补的是判断和执行。',
+    水:'建立流动系统：写作、谈话、散步、睡眠、情绪命名和深度思考。它补的是感受流动与智慧。'
+  }[el] || '';
+  const relText = rel ? `在这张盘里，${el}对应${rel}，也就是${relationMeaning(rel)}。` : '';
+  return `${relText}${base}`;
+}
+function buildTargetedTransformation(useful, strength, wxC){
+  const u = useful.useful;
+  const dayWx = strength.dayWx;
+  const rel = relationOfElement(dayWx, u);
+  let text = `用神方向是${u}，但这不是让人机械地“补${u}”，而是补回${u}所代表的生命能力。${realLifeMedicineForElement(u, rel, strength.level)}`;
+  if(strength.level==='身弱'||strength.level==='偏弱') text += ' 对偏弱日主来说，顺序非常重要：先被扶住，再去承担；先恢复生命力，再谈成绩、责任和竞争。';
+  if(strength.level==='身强'||strength.level==='偏强') text += ' 对偏强日主来说，重点不是继续增强，而是让力量有出口，有作品，有表达，有边界，有真正能落地的方向。';
+  if(useful.joy && useful.joy.length){
+    text += ` 喜神${useful.joy.join('、')}可以作为第二层支持：${useful.joy.map(j=>realLifeMedicineForElement(j, relationOfElement(dayWx,j), strength.level)).join('')}`;
+  }
+  return text;
+}
+
+function relationSimpleSentence(rel, state, el, n, strengthLevel){
+  const weak = strengthLevel==='身弱'||strengthLevel==='偏弱';
+  const strong = strengthLevel==='身强'||strengthLevel==='偏强';
+  if(rel==='印星'){
+    if(n===0) return `印星${el}缺位，说明支持系统、学习滋养和被接住的感觉不是自动存在的。这个人容易靠硬撑，而不是先从安全感里恢复力量。`;
+    if(n>=3) return `印星${el}很重，说明支持、学习、保护和解释很多。好处是有根，有资源；问题是容易想太多、被保护太久，行动会变慢。`;
+    return `印星${el}有根，说明这张盘不是完全孤立，关键是把支持真正转成行动，而不是只停在理解。`;
+  }
+  if(rel==='比劫'){
+    if(n===0) return `比劫${el}缺位，自我支点和同伴力量不足。遇到压力时，容易先怀疑自己，或者需要外界确认才敢坚持。`;
+    if(n>=3) return `比劫${el}很重，自我力量强，不服输，能扛事；但如果没有出口，也容易固执、较劲，什么都想自己顶住。`;
+    return `比劫${el}有根，说明这个人有底气和主见，只是需要找到正确的使用方式。`;
+  }
+  if(rel==='食伤'){
+    if(n===0) return `食伤${el}缺位，最需要注意的是表达出口不足。情绪、想法和才华可能都在里面，但不容易自然流出来。`;
+    if(n>=3) return `食伤${el}很重，表达、反应和创造力强，但情绪也容易外溢。用得好是作品，用不好就是消耗。`;
+    return `食伤${el}有根，说明这张盘有表达和创造的出口，越能做成作品，越流通。`;
+  }
+  if(rel==='财星'){
+    if(n===0) return `财星${el}缺位，现实目标和结果感不是自动清晰的。需要更具体的任务、反馈和落地路径。`;
+    if(n>=3) return weak ? `财星${el}很重，而日主还不够稳，现实责任、结果和资源压力容易提前压上来。这个人不是没能力，而是容易被“必须做好”拖住。` : `财星${el}很重，现实感强，能把能力转成果；但也容易把价值感绑在结果和责任上。`;
+    return `财星${el}有根，说明现实感和目标感存在，适合用具体成果来承接能力。`;
+  }
+  if(rel==='官杀'){
+    if(n===0) return `官杀${el}缺位，规则、边界和外部推动不足时，人容易散，需要清晰要求来帮助成形。`;
+    if(n>=3) return weak ? `官杀${el}很重，而日主偏弱，压力、评价、规则和恐惧感会很明显。越想证明，越容易紧张。` : `官杀${el}很重，说明挑战、纪律和上升压力强。用得好是成事的力量，用不好就是长期绷紧。`;
+    return `官杀${el}有根，说明规则、压力和挑战会成为人生主题。关键是把压力变成纪律，而不是焦虑。`;
+  }
+  return '';
+}
+
+function buildReadableNarrative(strength, wxC, useful, pattern, pillars){
+  const day = strength.dayStem;
+  const dayWx = strength.dayWx;
+  const gz = pillars.map(p=>TG[p.ti]+DZ[p.di]).join('　');
+  const rels = ['印星','比劫','食伤','财星','官杀'].map(r=>({rel:r, ...stateOfRel(dayWx, wxC, r)}));
+  const heavy = rels.filter(x=>x.n>=3).sort((a,b)=>b.n-a.n);
+  const absent = rels.filter(x=>x.n===0);
+  const top = heavy[0] || rels.sort((a,b)=>b.n-a.n)[0];
+  const weak = strength.level==='身弱'||strength.level==='偏弱';
+  const strong = strength.level==='身强'||strength.level==='偏强';
+  let title = `这个命盘有几件事特别值得注意：`;
+  let line1 = `<span class="narrative-label">第一，先看主矛盾：</span>${day}${dayWx}日主，整体定性为<span class="narrative-em">${strength.level}</span>。${weak?'这说明重点不是马上承担更多，而是先让日主站稳。':'这说明力量不是没有，真正要看它有没有出口、边界和方向。'}`;
+  let line2 = `<span class="narrative-label">第二，最明显的力量：</span>${top.rel}${top.el}最值得看，数量为×${top.n}。${relationSimpleSentence(top.rel, top.state, top.el, top.n, strength.level)}`;
+  let line3 = absent.length ? `<span class="narrative-label">第三，最缺的能力：</span>${absent.map(x=>`${x.rel}${x.el}`).join('、')}缺位。${absent.map(x=>relationSimpleSentence(x.rel, x.state, x.el, x.n, strength.level)).join('')}` : `<span class="narrative-label">第三，五行没有完全缺失：</span>所以不要执着于“缺什么补什么”，更要看哪股力量过度占位，哪股力量没有流动起来。`;
+  let line4 = `<span class="narrative-label">真正的用神不是符号：</span>${useful.useful}是这张盘最需要补回来的方向。${realLifeMedicineForElement(useful.useful, relationOfElement(dayWx,useful.useful), strength.level)}`;
+  let line5 = `<span class="narrative-label">一句话总结：</span>${pattern.pattern}。这张盘的问题不在于“好不好”，而在于${weak?'先恢复内在支撑，再去承担现实压力。':'把已经很强的力量导出去，让它变成表达、作品、规则、责任或真正能落地的成果。'}`;
+  return `
+    <div class="narrative-card zh">
+      <div class="narrative-title">${title}</div>
+      <div class="narrative-line narrative-soft">八字：${gz}</div>
+      <div class="narrative-line">${line1}</div>
+      <div class="narrative-line">${line2}</div>
+      <div class="narrative-line">${line3}</div>
+      <div class="narrative-line">${line4}</div>
+      <div class="narrative-line">${line5}</div>
+    </div>`;
+}
+
+function buildBaziDeepAnalysis(pillars, wxC){
+  const strength = assessDayStrength(pillars);
+  const pattern = derivePattern(pillars, strength);
+  const useful = deriveUsefulGod(strength, wxC);
+  const rows = getStemBranchRows(pillars);
+  const gz = pillars.map(p=>TG[p.ti]+DZ[p.di]).join('　');
+  const wxText = ['木','火','土','金','水'].map(w=>`${w}×${wxC[w]}`).join('、');
+  const missing = Object.entries(wxC).filter(([k,v])=>v===0).map(([k])=>k);
+  const dom = dominantElements(wxC);
+  const maxVal = Math.max(...Object.values(wxC));
+  const keyFeature = buildTargetedKeyFeature(strength, wxC, missing, dom);
+  const usefulJoy = [useful.useful].concat(useful.joy).filter((v,i,a)=>v && a.indexOf(v)===i).join('、');
+  const avoidText = useful.avoid.length ? useful.avoid.join('、') : '无明显固定忌神，重点看岁运组合';
+  const domSentence = dom.length>1 ? `数量上${dom.join('、')}同为最高，都是×${maxVal}。但月令、位置和十神关系比单纯数量更重要。` : `数量上${dom[0]}最明显，为×${maxVal}。但五行旺弱仍要结合月令、位置和藏干一起看。`;
+  const season = dayMasterSeasonSentence(strength, pillars);
+  const problem = buildTargetedProblem(strength, wxC, missing);
+  const transform = buildTargetedTransformation(useful, strength, wxC);
+  return `
+    <div class="divider"><span class="zh">命局重点解读</span><span class="en" style="display:none">Chart Highlights</span></div>
+    <div class="en-fallback-note analysis-card" style="display:none"><div class="analysis-step-title">English Mode Note</div><div class="analysis-body">The interface is in English. The detailed BaZi psychological reading is currently shown in Chinese until the full English interpretation library is added.</div></div>
+    ${buildReadableNarrative(strength, wxC, useful, pattern, pillars)}
+    <div class="divider"><span class="zh">完整命局分析</span><span class="en" style="display:none">Full Chart Reading</span></div>
+    <div class="analysis-alert zh">⚠️ <strong>命局关键提醒：</strong>${keyFeature}。这张盘不能只看“五行数量”，更要看这些五行对日主分别代表什么：支持、同伴、表达、现实责任，还是外界压力。</div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">你的八字</div>
+      <div class="analysis-body">${gz}</div>
+      <table class="analysis-table">
+        <tr><th></th><th>年柱</th><th>月柱</th><th>日柱 ⭐</th><th>时柱</th></tr>
+        <tr><th>天干</th>${rows.map(r=>`<td>${r.tg}（${YY_TG[TG.indexOf(r.tg)]}${r.tgWx}）</td>`).join('')}</tr>
+        <tr><th>地支</th>${rows.map(r=>`<td>${r.dz}（${YY_TG[DZ.indexOf(r.dz)%2]}${r.dzWx}）</td>`).join('')}</tr>
+      </table>
+    </div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">第一步：日主处在什么环境里</div>
+      <div class="analysis-body">${season}</div>
+      <div class="analysis-body"><strong>得令：</strong>${strength.lingText}</div>
+      <div class="analysis-body"><strong>得势：</strong>${strength.shiText}</div>
+      <div class="analysis-body"><strong>得地：</strong>${strength.diText}</div>
+      <div class="analysis-note">综合结论：此命局日主定性为 <span class="analysis-highlight">${strength.level}</span>。强弱不是性格好坏，而是看这个人做事、承压、表达和承担现实任务时，内在能量够不够稳。</div>
+    </div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">第二步：命局最大特征</div>
+      <div class="analysis-body">五行分布：${wxText}。${domSentence} ${missing.length?`命局缺${missing.join('、')}，真正要看的不是“少了什么颜色”，而是少了哪一种生命能力。`:`五行没有完全缺失，重点看哪一方过旺、哪一方被压住。`}</div>
+      <table class="analysis-table">
+        <tr><th>五行</th><th>数量</th><th>代表</th><th>性格/情绪影响</th></tr>
+        ${buildElementRows(wxC)}
+      </table>
+    </div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">第三步：五行如何变成十神关系</div>
+      <div class="analysis-body">同样是“水”或“土”，对不同日主意义完全不同。下面这一层才是分析有没有针对性的关键。</div>
+      <table class="analysis-table">
+        <tr><th>关系</th><th>五行</th><th>数量</th><th>代表什么</th><th>在这个命局里的表现</th></tr>
+        ${buildRelationRows(strength, wxC)}
+      </table>
+    </div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">第四步：格局与核心卡点</div>
+      <div class="analysis-body">${pattern.feature}</div>
+      <div class="analysis-note">格局提示：<span class="analysis-highlight">${pattern.pattern}</span>。月令是整张命盘的根，月支藏干为 ${pattern.monthHidden.map(h=>`${h}（${getShishen(strength.dayStem,h)}）`).join('、')}。</div>
+      <div class="analysis-body" style="margin-top:0.8rem">${problem.p1}</div>
+      <div class="analysis-body">${problem.p2}</div>
+      <div class="analysis-body">${problem.p3}</div>
+    </div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">第五步：用神与现实转化</div>
+      <div class="analysis-body">${useful.reason}</div>
+      <div class="analysis-note">用神方向：<span class="analysis-highlight">${useful.useful}</span>。喜神参考：${usefulJoy}。需要谨慎过度增加：${avoidText}。</div>
+      <div class="analysis-body" style="margin-top:0.8rem">${transform}</div>
+    </div>
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">核心总结</div>
+      <div class="analysis-body">这张盘真正要看的，不是“你是什么命”，而是你最容易在哪里失去流通。${keyFeature}，说明这个人的性格和情绪不是随机的，而是在某几股力量长期偏重或缺位后形成的固定回路。</div>
+      <div class="analysis-body">网站后续还可以继续往下做：把大运加入同一套分析。因为有些人的命局本身卡住，但某一步大运正好补上用神，那几年就会特别值得把握；有些大运加强忌神，就需要提前知道自己容易在哪些地方耗损。</div>
+    </div>
+    <div class="analysis-card en" style="display:none">
+      <div class="analysis-step-title">Full Chart Reading</div>
+      <div class="analysis-body">This version focuses on Chinese-style psychological BaZi interpretation. English reading can be expanded later.</div>
+    </div>`;
+}
+
+
+
+// ========== V10-V13: FAMILY EMOTIONAL SCRIPT / TRAUMA LINES ==========
+function countTenGodsFull(pillars, dayStem){
+  const counts={比肩:0,劫财:0,食神:0,伤官:0,正财:0,偏财:0,正官:0,七杀:0,正印:0,偏印:0};
+  pillars.forEach((p,i)=>{
+    if(i!==2){ const s=getShishen(dayStem,TG[p.ti]); if(counts[s]!==undefined) counts[s]+=1.2; }
+    const dz=DZ[p.di];
+    const hidden=DZ_CANGGAN[dz]||[];
+    hidden.forEach((h,idx)=>{ const s=getShishen(dayStem,h); if(counts[s]!==undefined) counts[s]+= idx===0?1:0.45; });
+  });
+  return counts;
+}
+function hasAnyStar(records, palace, names){
+  const rec=records && records[palace];
+  if(!rec || !rec.stars) return false;
+  return rec.stars.some(s=>names.includes(s));
+}
+function findPalaceWithStar(records, names){
+  if(!records) return '';
+  for(const [p,rec] of Object.entries(records)){
+    if((rec.stars||[]).some(s=>names.includes(s))) return p;
+  }
+  return '';
+}
+function buildTraumaChart(pillars, wxC){
+  const strength=assessDayStrength(pillars);
+  const dayStem=strength.dayStem, dayWx=strength.dayWx;
+  const ten=countTenGodsFull(pillars, dayStem);
+  const missing=Object.entries(wxC).filter(([k,v])=>v===0).map(([k])=>k);
+  const dom=dominantElements(wxC);
+  const rel=relElementMap(dayWx);
+  const ziwei=currentZiweiRecords || {};
+  const bodyPalace = Object.values(ziwei).find(r=>r.isShen)?.palace || '';
+  const mingPalace = Object.values(ziwei).find(r=>r.isMing)?.palace || '命宫';
+  const gz = pillars.map(p=>TG[p.ti]+DZ[p.di]).join('　');
+  return {
+    pillars, wxC, strength, dayStem, dayWx, ten, missing, dom, rel, ziwei,
+    bodyPalace, mingPalace, gz,
+    dayBranch:DZ[pillars[2].di],
+    monthBranch:DZ[pillars[1].di],
+    dayStage:strength.cs,
+    isStrong:['身强','偏强'].includes(strength.level),
+    isWeak:['身弱','偏弱'].includes(strength.level),
+    wealth:(ten.正财||0)+(ten.偏财||0),
+    officer:(ten.正官||0)+(ten.七杀||0),
+    output:(ten.食神||0)+(ten.伤官||0),
+    resource:(ten.正印||0)+(ten.偏印||0),
+    peer:(ten.比肩||0)+(ten.劫财||0)
+  };
+}
+function signalLevel(score){
+  if(score>=6) return 'strong';
+  if(score>=4) return 'clear';
+  return 'light';
+}
+function scoreLabelZh(score){
+  const lv=signalLevel(score);
+  return lv==='strong'?'强烈':(lv==='clear'?'明显':'轻微');
+}
+function scoreLabelEn(score){
+  const lv=signalLevel(score);
+  return lv==='strong'?'Strong':(lv==='clear'?'Clear':'Light');
+}
+function scoreGuideZh(score){
+  const lv=signalLevel(score);
+  if(lv==='strong') return '这条脉络在命盘中信号强烈，适合作为优先觉察的核心家族剧本。';
+  if(lv==='clear') return '这条脉络在命盘中有清楚痕迹，可能会反复影响你的选择、情绪或关系模式。';
+  return '这条脉络在命盘中只是轻微出现，不一定是核心主线，但在特定情境下可能被触发。';
+}
+function scoreGuideEn(score){
+  const lv=signalLevel(score);
+  if(lv==='strong') return 'This pattern shows a strong chart signal and is worth treating as a primary family-emotional script.';
+  if(lv==='clear') return 'This pattern shows a clear chart signal and may repeatedly shape choices, emotions, or relationship patterns.';
+  return 'This pattern shows a light chart signal. It may not be the main theme, but it can be activated in specific situations.';
+}
+
+
+// ========== V15: BASIC ZI WEI FOUR-TRANSFORMATION SIGNAL LAYER ==========
+// This is a cautious first layer. It reads the visible 生年四化 marks already shown in the Zi Wei chart.
+// It does NOT yet implement full 宫干飞化 or complete flying-star routing.
+const SIHUA_EMOTIONAL_MEANING = {
+  '化禄': '渴望、补偿、想得到、容易投入感情或资源的地方',
+  '化权': '掌控、主导、权威、压力、想要说了算的地方',
+  '化科': '修饰、体面、合理化、名声、把问题包装得更能被接受的地方',
+  '化忌': '卡点、亏欠、执着、反复牵动、最容易形成创伤剧本的地方'
+};
+const SIHUA_TRAUMA_HINTS = {
+  '命宫': {
+    '化禄':'自我认同容易和被喜欢、被肯定、被看见连接。',
+    '化权':'自我位置感带有主导和控制需求，容易不自觉地紧绷。',
+    '化科':'自我呈现重视体面、解释和被认可。',
+    '化忌':'自我认同容易成为卡点，常问“我是否够好、是否有位置”。'
+  },
+  '父母': {
+    '化禄':'父母/家族议题里有期待被滋养、被认可或被补偿的需求。',
+    '化权':'父母/家族权威感明显，期待、控制、标准容易进入内在系统。',
+    '化科':'父母/家族议题容易被体面、道理或名声包装。',
+    '化忌':'父母/家族议题容易成为内在卡点，带来亏欠、压力或难以放下的评价感。'
+  },
+  '福德': {
+    '化禄':'内在很需要安慰、滋养和精神上的满足。',
+    '化权':'内心不容易放松，容易想掌控自己的情绪和命运。',
+    '化科':'内在会用道理、修养、体面来整理情绪。',
+    '化忌':'内心安宁容易被牵动，反复思考、焦虑或精神内耗较明显。'
+  },
+  '夫妻': {
+    '化禄':'亲密关系里有强烈的被爱、被回应、被滋养需求。',
+    '化权':'亲密关系里容易出现控制、主导或谁说了算的议题。',
+    '化科':'亲密关系容易重体面、解释、外在稳定。',
+    '化忌':'亲密关系容易成为情绪卡点，牵动亏欠、失望、距离或难以放下。'
+  },
+  '官禄': {
+    '化禄':'事业/学业方向里有想被看见、想得到成果和资源的愿望。',
+    '化权':'事业/学业上有强烈主导、证明、掌控和承担压力。',
+    '化科':'事业/学业重名声、专业形象、证书、被认可。',
+    '化忌':'事业/学业容易成为自我价值卡点，方向越重要，越容易纠缠或拖延。'
+  },
+  '财帛': {
+    '化禄':'金钱、资源、拥有感与补偿需求明显。',
+    '化权':'资源与金钱议题中有掌控、证明和现实压力。',
+    '化科':'资源议题容易通过专业、体面、名声来获得认可。',
+    '化忌':'金钱、资源或拥有感容易成为亏欠、焦虑或“不配拥有”的触发点。'
+  },
+  '田宅': {
+    '化禄':'家、居住感、家族根基里有很强的安全与归属需求。',
+    '化权':'家庭/家族系统中权力、主导、控制和位置感明显。',
+    '化科':'家族议题容易被体面、传统、名声或“应该如此”包装。',
+    '化忌':'家族根基、居住感、安全感容易成为内在卡点或代偿来源。'
+  },
+  '仆役': {
+    '化禄':'朋友、团队、合作关系里有被接纳和互相滋养的需求。',
+    '化权':'合作关系里容易出现主导权、控制权或谁更有力量的议题。',
+    '化科':'人际关系容易重体面、名声、合理化和社交形象。',
+    '化忌':'朋友、团队、合作关系容易成为失望、背叛感或边界混乱的触发点。'
+  },
+  '迁移': {
+    '化禄':'走出去会带来机会、资源和被看见的愿望。',
+    '化权':'外部世界带来竞争、压力、主导和突破需求。',
+    '化科':'外部评价、身份、名声与形象变得重要。',
+    '化忌':'外部环境容易触发不安、卡住、怕走出去或走出去后消耗。'
+  },
+  '子女': {
+    '化禄':'创造、作品、孩子、表达出口里有滋养和喜悦需求。',
+    '化权':'创造/孩子/作品议题里有控制、推动和要求成果的压力。',
+    '化科':'表达和作品容易追求体面、精致、被认可。',
+    '化忌':'表达、创造、孩子或作品容易成为焦虑、亏欠和卡住的地方。'
+  },
+  '兄弟': {
+    '化禄':'手足/同辈关系里有支持、资源和互相照应的需求。',
+    '化权':'同辈关系里容易出现比较、主导、竞争或权力感。',
+    '化科':'同辈关系容易重体面、评价、名声和“看起来合适”。',
+    '化忌':'兄弟同辈关系容易牵动比较、亏欠、资源争夺或被替代感。'
+  },
+  '疾厄': {
+    '化禄':'身体和压力系统需要温和滋养与恢复。',
+    '化权':'身体容易长期处在撑住、控制、用力的状态。',
+    '化科':'身体压力可能被理性化或被体面地隐藏。',
+    '化忌':'压力容易进入身体，形成反复提醒你停下来看的卡点。'
+  }
+};
+function getSihuaSignals(records){
+  const out=[];
+  if(!records) return out;
+  Object.values(records).forEach(rec=>{
+    const huas=(rec.stars||[]).filter(s=>['化禄','化权','化科','化忌'].includes(s));
+    huas.forEach(h=>{
+      const hint=(SIHUA_TRAUMA_HINTS[rec.palace]&&SIHUA_TRAUMA_HINTS[rec.palace][h])||`${rec.palace}${h}，表示这个领域会被${SIHUA_EMOTIONAL_MEANING[h]}牵动。`;
+      out.push({palace:rec.palace,hua:h,hint,meaning:SIHUA_EMOTIONAL_MEANING[h]});
+    });
+  });
+  return out;
+}
+function describeSihuaForPalaces(records, palaces){
+  const signals=getSihuaSignals(records).filter(x=>palaces.includes(x.palace));
+  if(!signals.length) return '';
+  return signals.map(x=>`${x.palace}${x.hua}：${x.hint}`).join(' ');
+}
+function renderSihuaFoundationCards(chart){
+  const signals=getSihuaSignals(chart.ziwei);
+  const list = signals.length ? signals.map(x=>`<li><strong>${x.palace}${x.hua}</strong>：${x.hint}</li>`).join('') : '<li>当前简化紫微盘没有形成明显四化标记。后续完整飞星版会加入宫干飞化、来因宫、忌入与禄忌交缠。</li>';
+  return `<div class="analysis-card zh">
+    <div class="analysis-step-title">紫微四化信号</div>
+    <div class="analysis-body">这里显示当前紫微盘中可读取到的四化信号：禄、权、科、忌。它不是完整飞星紫微，只是把已经显示在紫微盘上的四化，转译为家族情绪图谱可以使用的命盘证据。</div>
+    <div class="analysis-body"><ul class="trauma-sublist">${list}</ul></div>
+    <div class="analysis-note">四化转译：化禄=渴望与补偿，化权=控制与压力，化科=体面与合理化，化忌=卡点与重复剧本。</div>
+  </div>
+  <div class="analysis-card en" style="display:none">
+    <div class="analysis-step-title">Zi Wei Four-Transformation Signals</div>
+    <div class="analysis-body">This section translates visible Zi Wei transformations into emotional-pattern signals. Full flying-star routing is not implemented yet.</div>
+  </div>`;
+}
+
+
+
+// ========== V13: DEEPER BAZI FOUNDATION ENGINE ==========
+const BRANCH_CONFLICTS = [
+  {type:'冲', pair:['子','午'], meaning:'水火正冲，情绪与行动、冷静与冲动之间容易拉扯'},
+  {type:'冲', pair:['丑','未'], meaning:'土气相冲，责任、家庭位置和安全感容易被触动'},
+  {type:'冲', pair:['寅','申'], meaning:'生长与规则相冲，想突破又被现实拉回'},
+  {type:'冲', pair:['卯','酉'], meaning:'表达与边界相冲，关系里容易出现评价、否定或互相挑剔'},
+  {type:'冲', pair:['辰','戌'], meaning:'旧结构与新秩序相冲，家族根基、居住感和内在稳定容易被震动'},
+  {type:'冲', pair:['巳','亥'], meaning:'热情与恐惧相冲，想行动却又被不安全感拉住'}
+];
+const BRANCH_HARMS = [
+  {type:'害', pair:['子','未'], meaning:'安全需求与责任感暗中相伤，容易有说不出的委屈'},
+  {type:'害', pair:['丑','午'], meaning:'稳定与热情互相消耗，做事容易先热后堵'},
+  {type:'害', pair:['寅','巳'], meaning:'生长与表达之间有暗伤，容易急、容易自我消耗'},
+  {type:'害', pair:['卯','辰'], meaning:'关系与家族根基之间有隐性牵扯'},
+  {type:'害', pair:['申','亥'], meaning:'规则与情绪流动之间有暗耗，容易想明白却说不顺'},
+  {type:'害', pair:['酉','戌'], meaning:'边界与家族秩序之间有暗伤，容易批判、压抑或被误解'}
+];
+const BRANCH_COMBINES = [
+  {type:'六合', pair:['子','丑'], meaning:'关系容易绑定到安全与责任'},
+  {type:'六合', pair:['寅','亥'], meaning:'情绪与生长互相牵引，适合疗愈与学习'},
+  {type:'六合', pair:['卯','戌'], meaning:'关系与规则绑定，容易为了体面维持稳定'},
+  {type:'六合', pair:['辰','酉'], meaning:'家族根基与边界判断绑定，容易重标准与评价'},
+  {type:'六合', pair:['巳','申'], meaning:'行动与规则绑定，容易一边想动一边自我审查'},
+  {type:'六合', pair:['午','未'], meaning:'热情与照顾绑定，容易用付出维持关系'}
+];
+function branchPairPresent(branches, pair){
+  return branches.includes(pair[0]) && branches.includes(pair[1]);
+}
+function pillarNameByIndex(i){return ['年柱','月柱','日柱','时柱'][i]||'';}
+function branchPositions(pillars, pair){
+  const out=[];
+  pillars.forEach((p,i)=>{ if(pair.includes(DZ[p.di])) out.push(`${pillarNameByIndex(i)}${DZ[p.di]}`); });
+  return out.join('、');
+}
+function analyzeBranchDynamics(pillars){
+  const branches=pillars.map(p=>DZ[p.di]);
+  const found=[];
+  [...BRANCH_CONFLICTS, ...BRANCH_HARMS, ...BRANCH_COMBINES].forEach(rule=>{
+    if(branchPairPresent(branches, rule.pair)){
+      found.push({type:rule.type, pair:rule.pair.join(''), positions:branchPositions(pillars, rule.pair), meaning:rule.meaning});
+    }
+  });
+  return found;
+}
+function tenGodFamilyMeaning(name){
+  return {
+    正印:'母系照顾、稳定支持、被保护、学习与被理解',
+    偏印:'非典型照顾、灵性感知、孤独式理解、过度思考',
+    正财:'父系资源、稳定收入、现实责任、可见成果',
+    偏财:'父系机会、外部资源、生意机会、资源流动',
+    正官:'规矩、名声、父母标准、社会评价、正确感',
+    七杀:'压力、权威、挑战、恐惧、被要求快速强大',
+    食神:'温和表达、才华出口、享受、被滋养后的创造',
+    伤官:'锋利表达、反抗权威、才华爆发、不服管束',
+    比肩:'自我支点、同辈、兄弟姐妹、并肩与竞争',
+    劫财:'资源争夺、同辈压力、义气、冲动与失衡的竞争'
+  }[name]||'';
+}
+function analyzeSixKin(chart){
+  const groups=[
+    {key:'印星', names:['正印','偏印'], role:'母系照顾 / 支持系统'},
+    {key:'财星', names:['正财','偏财'], role:'父系资源 / 现实责任'},
+    {key:'官杀', names:['正官','七杀'], role:'权威规则 / 评价系统'},
+    {key:'食伤', names:['食神','伤官'], role:'表达才华 / 情绪出口'},
+    {key:'比劫', names:['比肩','劫财'], role:'兄弟同辈 / 竞争关系'}
+  ];
+  return groups.map(g=>{
+    const score=g.names.reduce((sum,n)=>sum+(chart.ten[n]||0),0);
+    const state=score>=3?'偏重':(score>=1.4?'有根':'偏弱');
+    let meaning='';
+    if(g.key==='印星') meaning= state==='偏重'?'母系、照顾和保护感很强，但也可能变成过度保护、依赖解释或难以真正独立。':state==='偏弱'?'被接住、被理解和被稳定支持的经验不足，容易靠硬撑证明自己。':'支持与学习能力存在，关键是能不能把理解转为行动。';
+    if(g.key==='财星') meaning= state==='偏重'?'父系资源、金钱、现实责任和成果压力明显，容易把价值感绑定到结果。':state==='偏弱'?'现实目标和资源感需要被具体化，否则洞见容易停在想法里。':'现实感与目标感存在，适合把能力落实为成果。';
+    if(g.key==='官杀') meaning= state==='偏重'?'权威、规则、评价和压力感明显，容易形成内在审判官或害怕失败的模式。':state==='偏弱'?'外部规则感不足时，需要清晰边界和阶段要求来帮助行动。':'规则与挑战存在，用得好是纪律和上升力。';
+    if(g.key==='食伤') meaning= state==='偏重'?'表达、才华和反应速度强，但需要把输出变成作品，而不是情绪消耗。':state==='偏弱'?'表达出口不足，感受、洞见和才华容易压在体内。':'表达与创造力有根，适合用写作、谈话、作品让命局流通。';
+    if(g.key==='比劫') meaning= state==='偏重'?'自我、主见和竞争感强，容易什么都自己扛，也可能触发兄弟同辈资源竞争。':state==='偏弱'?'自我支点和同伴感不足，容易等待外界确认。':'有一定自我支点和同伴力量，关键是合作而非内耗。';
+    return {key:g.key, role:g.role, score, state, meaning};
+  });
+}
+function lifeRemedyForElement(el){
+  return {
+    木:'木代表生长、学习、方向、长期滋养和重新开始。现实中不是简单“补木”，而是建立能让自己慢慢长出来的系统：自然、阅读、老师、成长路径、小目标和长期主义。',
+    火:'火代表热情、表达、行动力、被看见和生命兴奋感。现实中补火，是让自己有舞台、有作品、有行动反馈，而不是一直停在理解和准备里。',
+    土:'土代表稳定、承载、生活秩序和落地能力。现实中补土，是建立节奏、习惯、家与身体的安定感，让洞见真正落到日常。',
+    金:'金代表边界、判断、规则、执行和切割旧模式。现实中补金，是练习清晰表达、拒绝、选择、完成任务，而不是一直停在混沌里。',
+    水:'水代表情绪流动、语言、智慧、释放和创造出口。现实中补水，是写作、谈话、散步、睡眠、情绪命名，让压住的感受重新流动。'
+  }[el]||'';
+}
+function buildBaziFoundation(chart){
+  const dynamics=analyzeBranchDynamics(chart.pillars);
+  const six=analyzeSixKin(chart);
+  const usefulEl = chart.isWeak ? chart.rel.印星 : chart.rel.食伤;
+  const secondaryEl = chart.isWeak ? chart.rel.比劫 : chart.rel.财星;
+  const rootLevel = chart.strength.level;
+  let rootText = `${chart.dayStem}${chart.dayWx}日主为${rootLevel}，得令：${chart.strength.lingScore>0?'有力':chart.strength.lingScore<0?'不足':'中等'}；得地：日支${chart.dayBranch}为${chart.dayStage}；得势：生扶${chart.strength.support}项、克泄耗${chart.strength.drain}项。`;
+  if(chart.isStrong && ['绝','死','病'].includes(chart.dayStage)) rootText += ' 这是一种“外在有力、内在根基有隐忧”的结构，最容易形成表面能撑、深处不稳的矛盾。';
+  else if(chart.isWeak && ['长生','冠带','临官','帝旺'].includes(chart.dayStage)) rootText += ' 这是一种“环境压力较重，但内在仍有根”的结构，关键是先补支持，再谈承担。';
+  else if(chart.isStrong) rootText += ' 这类命局重点不是继续增强自己，而是找到出口，让力量真正流通。';
+  else if(chart.isWeak) rootText += ' 这类命局重点不是硬扛，而是先建立支持系统与自我根气。';
+  else rootText += ' 这类命局不宜只看强弱，要看哪股力量最堵、哪股力量最缺出口。';
+  return {rootText, dynamics, six, usefulEl, secondaryEl, remedy1:lifeRemedyForElement(usefulEl), remedy2:lifeRemedyForElement(secondaryEl)};
+}
+function renderBaziFoundationCards(chart){
+  const f=buildBaziFoundation(chart);
+  const dynHtml = f.dynamics.length ? f.dynamics.map(d=>`<li><strong>${d.pair}${d.type}</strong>（${d.positions}）：${d.meaning}</li>`).join('') : '<li>地支之间没有特别突出的冲害组合，关系拉扯不算命局最明显的主线。</li>';
+  const sixHtml = f.six.map(x=>`<li><strong>${x.key}</strong>｜${x.role}｜${x.state}：${x.meaning}</li>`).join('');
+  return `<div class="analysis-card zh">
+    <div class="analysis-step-title">八字底层规则增强</div>
+    <div class="analysis-body">这里显示系统判断家族情绪图谱时使用的八字依据：得令、得地、得势、刑冲合害、六亲十神与用神转化。它不是新增一堆术语，而是把底层规则转译成可理解的命盘证据。</div>
+  </div>
+  <div class="analysis-card zh">
+    <div class="analysis-step-title">一、日主根基</div>
+    <div class="analysis-body">${f.rootText}</div>
+  </div>
+  <div class="analysis-card zh">
+    <div class="analysis-step-title">二、命局拉扯：刑冲合害</div>
+    <div class="analysis-body"><ul class="trauma-sublist">${dynHtml}</ul></div>
+  </div>
+  <div class="analysis-card zh">
+    <div class="analysis-step-title">三、六亲情绪结构</div>
+    <div class="analysis-body"><ul class="trauma-sublist">${sixHtml}</ul></div>
+  </div>
+  <div class="analysis-card zh">
+    <div class="analysis-step-title">四、用神转化</div>
+    <div class="analysis-body">第一转化方向：<span class="analysis-highlight">${f.usefulEl}</span>。${f.remedy1}</div>
+    <div class="analysis-body" style="margin-top:0.6rem">第二辅助方向：<span class="analysis-highlight">${f.secondaryEl}</span>。${f.remedy2}</div>
+  </div>
+  <div class="analysis-card en" style="display:none">
+    <div class="analysis-step-title">BaZi Foundation Signals</div>
+    <div class="analysis-body">This section shows the BaZi evidence used by the family-emotional map: seasonal strength, root strength, branch clashes/harms/combinations, family-role Ten Gods, and life-remedy translation. Deep explanatory content is currently optimized in Chinese.</div>
+  </div>`;
+}
+
+function traumaSignalList(items){ return items.filter(Boolean).join('；'); }
+function formatChartSignal(parts){
+  const bazi = parts.bazi || '八字信号需要结合完整命盘复核。';
+  const ziwei = parts.ziwei || '紫微信号暂未形成强提示，后续可结合完整安星复核。';
+  const career = parts.career || '';
+  const summary = parts.summary || '这些信号共同构成一条可观察的情绪脉络，但不是宿命定论。';
+  return `<div class="chart-signal-box">
+    <div class="chart-signal-row"><span class="chart-signal-label">八字</span><span class="chart-signal-text">${bazi}</span></div>
+    <div class="chart-signal-row"><span class="chart-signal-label">紫微</span><span class="chart-signal-text">${ziwei}</span></div>
+    ${career?`<div class="chart-signal-row"><span class="chart-signal-label">事业权威</span><span class="chart-signal-text">${career}</span></div>`:''}
+    <div class="chart-signal-row summary"><span class="chart-signal-label">综合</span><span class="chart-signal-text">${summary}</span></div>
+  </div>`;
+}
+
+function sihuaLineForTrauma(id, chart){
+  const z=chart.ziwei;
+  const palaceMap={
+    existence:['命宫','福德'],
+    worth:['官禄','财帛'],
+    unworthy:['命宫','财帛','官禄','父母'],
+    expression:['福德','子女','命宫'],
+    safety:['命宫','疾厄','福德'],
+    conditional_love:['父母','夫妻','子女'],
+    shame:['官禄','福德','命宫'],
+    compensation:['父母','田宅','福德','官禄'],
+    betrayal:['仆役','兄弟','身宫'],
+    intimacy:['夫妻','福德'],
+    authority:['父母','命宫','福德'],
+    agency:['官禄','迁移','身宫']
+  };
+  const palaces=palaceMap[id]||[];
+  const sihua=describeSihuaForPalaces(z,palaces);
+  const staticHints=[];
+  const add=(palace,names,text)=>{ if(hasAnyStar(z,palace,names)) staticHints.push(text); };
+  if(id==='existence') { add('命宫',['化忌','地空','地劫'],'命宫受忌/空劫牵动，自我位置感容易被触发'); add('福德',['化忌','地空','地劫'],'福德宫受忌/空劫牵动，内在安宁感容易受影响'); }
+  if(id==='worth') { add('官禄',['化权','化忌','陀罗','地劫'],'官禄宫有权/忌/阻滞信号，事业评价感强'); add('财帛',['化权','化忌','地劫'],'财帛宫有权/忌/耗损信号，资源与价值感容易绑定'); }
+  if(id==='unworthy') { add('父母',['紫微','化权'],'父母宫见权威信号，家族标准容易进入内在评价'); add('命宫',['化权','化忌','地空','地劫'],'命宫见权/忌/空劫，拥有感与自我位置感容易被触发'); }
+  if(id==='expression') { add('福德',['巨门','化忌'],'福德宫见巨门/化忌，内心追问与表达卡点较明显'); add('子女',['化忌','地空','地劫'],'子女宫受忌/空劫牵动，创造和表达出口容易卡住'); }
+  if(id==='safety') { add('命宫',['武曲','七杀','廉贞','破军'],'命宫见刚烈/变化型主星，防御感较强'); add('疾厄',['化忌','陀罗','擎羊'],'疾厄宫受煞忌牵动，压力容易进入身体系统'); }
+  if(id==='conditional_love') { add('父母',['化忌','地空','地劫'],'父母宫见忌/空劫，早年回应感可能不稳定'); add('夫妻',['化忌','地空','地劫'],'夫妻宫见忌/空劫，亲密中容易触发条件感'); }
+  if(id==='shame') { add('官禄',['化忌','陀罗','擎羊'],'官禄宫见忌/煞，表现与失败议题容易牵动羞耻感'); add('福德',['化忌','巨门'],'福德宫见忌/巨门，内在自我审问较强'); }
+  if(id==='compensation') { add('父母',['紫微','化权','化忌'],'父母宫有权威/压力信号，家族期待明显'); add('田宅',['化忌','地空','地劫'],'田宅宫见忌/空劫，家族根基议题容易被触发'); }
+  if(id==='betrayal') { add('仆役',['廉贞','巨门','化忌','陀罗','地劫'],'仆役宫有人际是非/失望信号，合作与信任容易被触发'); add('兄弟',['化忌','地空','地劫'],'兄弟宫受忌/空劫牵动，同辈比较和资源感容易受影响'); }
+  if(id==='intimacy') { add('夫妻',['地空','地劫'],'夫妻宫见空劫，亲密中容易有空洞或距离感'); add('夫妻',['化忌','巨门','廉贞'],'夫妻宫见忌/巨门/廉贞，亲密议题容易触发旧伤'); }
+  if(id==='authority') { add('父母',['紫微'],'父母宫见紫微，家族权威感强'); add('父母',['化权'],'父母宫见化权，期待、控制和标准感明显'); add('父母',['化忌','陀罗','擎羊'],'父母宫见忌/煞，权威关系容易成为卡点'); }
+  if(id==='agency') { add('官禄',['天梁'],'官禄宫见天梁，事业方向带保护、疗愈、教育、引导意味'); add('官禄',['陀罗','地劫','化忌','擎羊'],'官禄宫见阻滞/耗损信号，推进容易反复纠缠'); add('迁移',['破军','七杀','化忌'],'迁移宫见变化/忌星，走出去会触发不安和转向功课'); }
+  const all=[];
+  if(sihua) all.push(sihua);
+  if(staticHints.length) all.push(staticHints.join('；'));
+  return all.join('；') || '当前简化紫微盘未形成此脉络的强提示；这一条可先以八字结构为主要依据，后续完整安星和飞星版再复核。';
+}
+const TRAUMA_SIGNAL_SUMMARIES = {
+  existence:'这些信号共同指向“存在感需要被确认”的结构。它不是说人没有能力，而是说明自我位置感容易受外界回应影响。',
+  worth:'这些信号共同指向“价值感和结果绑定”的结构。越重要的成绩、资源或身份，越容易牵动自我评价。',
+  unworthy:'这些信号共同指向“有能力、有愿望，但真正拥有更大成功、财富、爱或影响力时，会先怀疑自己是否配得上”的结构。',
+  expression:'这些信号共同指向“感受很多，但出口不足”的结构。情绪、语言、才华需要找到安全流动的通道。',
+  safety:'这些信号共同指向“防御系统较强”的结构。刚硬曾经保护一个人，但也可能让真实感受不容易被看见。',
+  conditional_love:'这些信号共同指向“爱与表现、付出、顺从绑定”的结构。人容易用有用、懂事或照顾别人来换取安全感。',
+  shame:'这些信号共同指向“错误容易变成身份羞耻”的结构。拖延和不敢开始，常常是在保护自己不被彻底否定。',
+  compensation:'这些信号共同指向“个人命运与家族未完成愿望绑定”的结构。努力背后可能有替家族证明、翻身或修补的压力。',
+  betrayal:'这些信号共同指向“关系容易触发信任与边界功课”的结构。它不是断定会被背叛，而是说明关系失望感容易被放大。',
+  intimacy:'这些信号共同指向“亲密中有距离感”的结构。不是没有爱，而是某些真实需求和脆弱不容易进入关系。',
+  authority:'这些信号共同指向“内在权威和家族评价系统”的结构。做选择时容易不只问想不想，也问够不够正确、体面、被认可。',
+  agency:'这些信号共同指向“从觉察到行动之间有阻力”的结构。越接近真正改变，旧剧本越可能反扑。'
+};
+
+function authoritySignalsForChart(chart){
+  const signals=[];
+  const day=chart.dayStem, dayWx=chart.dayWx;
+  if(chart.officer>=2){
+    signals.push({key:'官杀信号', weight:chart.officer, text:`官杀出现较明显，规则、评价、身份位置和外部要求容易成为人生主题。`});
+  } else if(chart.officer===1){
+    signals.push({key:'官杀信号', weight:1, text:`官杀有出现，说明权威、规则与评价系统会在关键阶段被触发。`});
+  }
+  if(chart.resource>=2){
+    signals.push({key:'印星信号', weight:chart.resource, text:`印星明显，资格、背书、学习系统和被保护/被认可的需求较强。`});
+  } else if(chart.resource===0){
+    signals.push({key:'印星信号', weight:1, text:`印星不足时，人容易觉得自己缺少支持或背书，必须靠表现证明自己。`});
+  }
+  if((chart.ten.七杀||0)>=1){
+    const controlled=(chart.output>=1 || chart.resource>=1 || chart.peer>=1);
+    signals.push({key:'七杀信号', weight:(chart.ten.七杀||0)+1, text:controlled?`七杀被食伤、印星或比劫接住时，压力可以转成决断力、领导力和承担风险的能力。`:`七杀出现而制化不足时，压力更容易先表现为紧绷、威胁感和过度防御。`});
+  }
+  if((chart.ten.伤官||0)>=1){
+    const hasOfficer=chart.officer>=1;
+    signals.push({key:'伤官信号', weight:(chart.ten.伤官||0)+1, text:hasOfficer?`伤官与官杀同现，才华表达和权威规则会互相牵动；用得好是突破，用不好是和评价系统冲突。`:`伤官出现，说明表达、反叛旧规则、创造出口是重要功课。`});
+  }
+  const mixed=(chart.officer>=2 && chart.output>=2) || (chart.resource>=2 && chart.wealth>=2) || (chart.peer>=2 && chart.wealth>=2) || (chart.officer>=2 && chart.resource===0) || (chart.wealth>=2 && chart.resource===0);
+  if(mixed){
+    signals.push({key:'格局清浊', weight:2, text:`命局里有多股力量同时拉扯，重点不是能力够不够，而是成功、表达、责任和资格是否能形成同一个方向。`});
+  } else {
+    signals.push({key:'格局清浊', weight:1, text:`命局力量相对可整理，关键是让优势有出口，不把外部评价变成内在审判。`});
+  }
+  return signals.sort((a,b)=>b.weight-a.weight);
+}
+
+function businessAuthorityLineForTrauma(id, chart){
+  const sig=authoritySignalsForChart(chart);
+  const has=(name)=>sig.some(x=>x.key===name);
+  const top=sig.slice(0,2).map(x=>`${x.key}：${x.text}`).join(' ');
+  const map={
+    worth:`价值证明最容易被财星、官杀和印星牵动。${top} 这表示“成功”不只是成果，而是和被认可、被授权、被证明有价值绑在一起。`,
+    unworthy:`当财官信号或权威信号出现，而日主根基、印星支持或拥有感不够稳时，人会一边想要成功，一边怀疑自己是否配得上。${top}`,
+    authority:`权威压迫主要看官杀、七杀、印星与年月柱压力。${top} 这类结构容易把外部标准内化成一个严厉的自我评判者。`,
+    agency:`行动力转向主要看七杀、伤官、食伤出口与格局清浊。${top} 有力量不等于能行动，关键是压力是否被转成清晰动作。`,
+    shame:`完美羞耻主要看官杀评价、伤官见官和格局混杂。${top} 人可能不是不努力，而是害怕一出手就被审查、比较或否定。`,
+    compensation:`家族代偿常与印星、官杀和年月柱有关。${top} 个人成就容易承载家族期待、翻身愿望或未完成任务。`,
+    safety:`安全防御常与七杀、官杀和金性边界有关。${top} 压力如果没有被转化，就会先变成防御、紧绷和控制。`,
+    expression:`情绪表达常与食伤、伤官和印星压制有关。${top} 表达不是任性，而是让才华、情绪和反叛旧规则的力量有出口。`
+  };
+  return map[id] || `事业权威层显示：${top} 这不是判断官运，而是看成功、评价、资格和社会位置如何触发这条情绪脉络。`;
+}
+
+function renderAuthorityFoundationCards(chart){
+  const sig=authoritySignalsForChart(chart);
+  const items=sig.slice(0,5).map(x=>`<li><strong>${x.key}</strong>：${x.text}</li>`).join('');
+  return `<div class="analysis-card zh">
+    <div class="analysis-step-title">事业权威信号库</div>
+    <div class="analysis-body">这一层不是判断“会不会当官”，而是看命盘中成功、权威、资格、被认可、社会位置这些主题如何被触发。它会被并入下面的家族情绪脉络和人生阶段功课。</div>
+  </div>
+  <div class="analysis-card zh">
+    <div class="analysis-step-title">当前命盘的事业权威信号</div>
+    <div class="analysis-body"><ul class="trauma-sublist">${items}</ul></div>
+  </div>
+  <div class="analysis-card en" style="display:none">
+    <div class="analysis-step-title">Career / Authority Signals</div>
+    <div class="analysis-body">This layer translates status, authority, recognition, pressure, qualification, and achievement signals into emotional-pattern language. English content is currently simplified.</div>
+  </div>`;
+}
+
+function normalizeTraumaSignal(id, chart, rawSignal){
+  if(rawSignal && String(rawSignal).includes('chart-signal-box')) return rawSignal;
+  return formatChartSignal({
+    bazi: rawSignal || '八字信号需要结合完整命盘复核。',
+    ziwei: sihuaLineForTrauma(id, chart),
+    career: businessAuthorityLineForTrauma(id, chart),
+    summary: TRAUMA_SIGNAL_SUMMARIES[id] || '这些信号共同构成一条可观察的情绪脉络，但不是宿命定论。'
+  });
+}
+
+function traumaSubList(items){
+  const arr=(items||[]).filter(Boolean);
+  if(!arr.length) return '';
+  return `<ul class="trauma-sublist">${arr.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+}
+function buildTraumaRules(){
+  return [
+    {
+      id:'existence', title:'第一条：存在许可', short:'我是否被允许占有自己的位置？',
+      check(c){ let s=0; if(c.isWeak)s+=2; if(['绝','死','病'].includes(c.dayStage))s+=2; if(c.resource<1)s+=1.5; if(c.officer>=2)s+=1.2; if(hasAnyStar(c.ziwei,'命宫',['化忌','地空','地劫']))s+=2; if(hasAnyStar(c.ziwei,'福德',['化忌','地空','地劫']))s+=1.5; return s;},
+      render(c){return {
+        signal: traumaSignalList([`${c.dayStem}${c.dayWx}日主${c.strength.level}`, `日支${c.dayBranch}处于${c.dayStage}`, c.resource<1?'印星不足，早期支持感与被接住感偏弱':'', c.officer>=2?'官杀较重，外界要求与压力较明显':'', hasAnyStar(c.ziwei,'命宫',['化忌','地空','地劫'])?'命宫见忌/空劫，存在感容易被削弱或悬空':'']),
+        scripts:['不敢占位置，怕自己成为负担','必须有用、懂事、能帮忙，才觉得自己有资格留下','在人群里容易透明，明明在场却像没有真正被看见'],
+        reality:`这条脉络的核心不是“有没有能力”，而是一个人是否真的允许自己存在。它常表现为不敢要、不敢麻烦别人、不敢把自己的需求放在台面上。外表可以很正常，内在却有一个很深的犹疑：我在这里，会不会太多？`,
+        family:`这常来自家族中长期的匮乏、牺牲或不被回应。孩子会学会把自己缩小，先照顾环境，先不添麻烦，久而久之，把“少占一点位置”误认为安全。`,
+        question:`你最早是在谁面前学会“我不能太占位置”的？如果你允许自己多要一点，最怕发生什么？`
+      }}
+    },
+    {
+      id:'worth', title:'第二条：价值证明', short:'我是否必须做出成绩，才算有价值？',
+      check(c){ let s=0; if(c.wealth>=2)s+=2; if(c.officer>=2)s+=2; if(c.isWeak && c.wealth+c.officer>=3)s+=2; if(hasAnyStar(c.ziwei,'官禄',['化权','化忌','陀罗','地劫']))s+=2; if(hasAnyStar(c.ziwei,'财帛',['化权','化忌','地劫']))s+=1.5; return s;},
+      render(c){return {
+        signal: traumaSignalList([c.wealth>=2?'财星明显，现实成果、资源和金钱议题突出':'', c.officer>=2?'官杀明显，评价、规则、职位和成就压力突出':'', c.isWeak && c.wealth+c.officer>=3?'日主偏弱而财官重，容易先被结果要求推着走':'', hasAnyStar(c.ziwei,'官禄',['化权','化忌','陀罗','地劫'])?'官禄宫有权/忌/阻滞信号，事业评价感强':'']),
+        scripts:['成绩证明价值','金钱或事业证明价值','孩子、婚姻、身份成为自我价值的外部凭据'],
+        reality:`这条脉络会让人把“我是谁”交给外部结果判断。做成了才安心，没结果就觉得自己没有价值。它不一定表现为贪心，更多时候是一种深层焦虑：我必须拿出东西，才不会被否定。`,
+        family:`家族如果长期把成功、翻身、体面、成绩当作安全来源，后代很容易把价值感外包给成果。一个人不是在追求成功，而是在用成功换取存在感。`,
+        question:`如果暂时没有成果、没有头衔、没有证明，你还相信自己有价值吗？这个答案最先被谁影响？`
+      }}
+    },
+    {
+      id:'unworthy', title:'第三条：「不配拥有」的核心信念', short:'大的愿望一出现，内在先问“我配吗？”',
+      check(c){ let s=0; if(c.isStrong)s+=1.5; if(['绝','死','病'].includes(c.dayStage))s+=3; if(c.wealth>=1.5)s+=1; if(c.officer>=1.5)s+=1; if(hasAnyStar(c.ziwei,'命宫',['化权','化忌','地空','地劫']))s+=2; if(hasAnyStar(c.ziwei,'父母',['紫微','化权','化忌']))s+=1.5; return s;},
+      render(c){return {
+        signal: formatChartSignal({
+          bazi: `${c.dayStem}${c.dayWx}日主${c.strength.level}，日支${c.dayBranch}为${c.dayStage}。${c.wealth?'财星显露，说明现实资源、拥有感与成果议题会被激活。':''}${c.officer?'官杀/权力压力显露，说明成功、影响力与外界评价容易同时出现。':''}`,
+          ziwei: `${hasAnyStar(c.ziwei,'父母',['紫微','化权'])?'父母宫见紫微/化权一类权威信号，家族标准与父母眼光容易进入内在评价系统。':'紫微部分暂未形成强权威提示，可先以八字结构为主要依据。'}${hasAnyStar(c.ziwei,'命宫',['化权','化忌','地空','地劫'])?' 命宫见权/忌/空劫信号时，拥有感与自我位置感更容易被触发。':''}${describeSihuaForPalaces(c.ziwei,['命宫','财帛','官禄','父母'])?' '+describeSihuaForPalaces(c.ziwei,['命宫','财帛','官禄','父母']):''}`,
+          career: businessAuthorityLineForTrauma('unworthy', c),
+          summary: `这组信号共同指向一种“有能力、有愿望，但在真正拥有更大成功、财富、爱或影响力时，会先怀疑自己是否配得上”的结构。它不是说人没有能力，而是说明拥有感会触发旧的家族情绪。`
+        }),
+        scripts:['不配拥有钱、成功、爱或影响力','愿望一变大就开始缩小自己','机会来了先怀疑自己是否配得上'],
+        reality:`这条脉络不是说你没有能力，而是越接近“大的拥有、大的成功、大的影响力”，越容易触发一个更深的问题：我真的可以要这么多吗？人会把愿望说小，把野心藏起来，甚至在机会来临时先替自己找理由退后。`,
+        family:`它常来自家族里对“出头、拥有、成功”的复杂态度：既渴望翻身，又害怕太显眼；既希望你有成就，又可能用羞耻、比较或控制压住真正的欲望。`,
+        question:`当你说“我想要更大的成功”时，身体里第一个出来阻止你的声音是谁的？它是在保护你，还是在替旧家族剧本守门？`
+      }}
+    },
+    {
+      id:'expression', title:'第四条：情绪表达', short:'我的感受是否被允许说出来？',
+      check(c){ let s=0; if(c.output<1)s+=2.5; if(c.missing.includes(c.rel.食伤))s+=3; if(c.resource>=2.5)s+=1.2; if(hasAnyStar(c.ziwei,'命宫',['巨门','天机','文昌','文曲']))s+=1; if(hasAnyStar(c.ziwei,'福德',['巨门','化忌']))s+=1.5; return s;},
+      render(c){ const outEl=c.rel.食伤; return {
+        signal: traumaSignalList([`对${c.dayStem}${c.dayWx}来说，${outEl}是食伤，代表表达、创造与情绪出口`,c.missing.includes(outEl)?`${outEl}缺失，表达出口不足`:c.output<1?'食伤力量偏弱':'',c.resource>=2.5?'印星较重，容易先理解、先审查，再表达':'']),
+        scripts:['沉默、吞话、说了没人听','用愤怒、讽刺或冷淡代替真实感受','有洞见但不敢公开表达'],
+        reality:`这类人不是没有洞察，而是洞察容易停在体内；不是没有才华，而是才华常常先经过自我审查。真正要公开表达、展示作品、让世界看见时，身体里会出现一种“不安全”的阻力。`,
+        family:`如果家族里表达真实需求曾经带来羞辱、否定、惩罚或无人回应，后代就会学会把话咽回去，把才华藏起来。`,
+        question:`当你准备把自己的洞见公开表达时，那个阻止你的声音在说什么？它怕你被嘲笑、被否定，还是怕你真的成功？`
+      }}
+    },
+    {
+      id:'safety', title:'第五条：安全防御与刚硬盔甲', short:'世界是否危险？我是否必须先防御才能活下去？',
+      check(c){ let s=0; if((c.wxC['金']||0)>=3)s+=2.2; if(c.missing.includes('水'))s+=1.5; if(c.officer>=2.5)s+=2; if(c.peer>=2)s+=1; if(c.isWeak && c.officer>=2)s+=1.5; if(hasAnyStar(c.ziwei,'命宫',['武曲','七杀','廉贞','破军']))s+=1.5; if(hasAnyStar(c.ziwei,'疾厄',['化忌','陀罗','擎羊']))s+=1.5; return s;},
+      render(c){return {
+        signal: traumaSignalList([(c.wxC['金']||0)>=3?'金气偏旺，判断、防御、边界感强':'',c.missing.includes('水')?'水缺，情绪与表达流动不足':'',c.officer>=2.5?'官杀较重，压力、防备与被要求感明显':'',hasAnyStar(c.ziwei,'命宫',['武曲','七杀','廉贞','破军'])?'命宫见刚烈/变化型主星，防御感较强':'']),
+        scripts:['总觉得人心险恶或无人可靠','过度控制，先防御后连接','强、硬、能扛，像一副保护自己的盔甲'],
+        reality:`刚硬不代表没有感受，而是感受往往先被理性、判断、标准和防御包住。难过不容易说成难过，委屈不容易说成委屈，最后可能变成冷、硬、沉默、讽刺，或者“我不需要任何人”。`,
+        family:`很多家族不是教人表达脆弱，而是教人撑住、忍住、别求、别软。于是“刚”变成代代相传的盔甲，保护了人，也隔开了真实连接。`,
+        question:`你的刚硬最初保护了你什么？如果不再用硬来保护自己，你最怕别人看见哪一部分？`
+      }}
+    },
+    {
+      id:'conditional_love', title:'第六条：条件之爱', short:'我是否必须表现好、付出够多，才配被爱？',
+      check(c){ let s=0; if(c.resource>=2.5)s+=1.5; if(c.wealth>=2 && c.resource>=1.5)s+=1.5; if(c.officer>=2)s+=1.2; if(hasAnyStar(c.ziwei,'父母',['化忌','地空','地劫']))s+=2; if(hasAnyStar(c.ziwei,'夫妻',['化忌','地空','地劫']))s+=2; if(hasAnyStar(c.ziwei,'子女',['化忌','地空','地劫']))s+=1.2; return s;},
+      render(c){return {
+        signal: traumaSignalList([c.resource>=2.5?'印星较重，爱、照顾、依附与期待议题突出':'', c.wealth>=2?'财星明显，付出、责任和现实交换感增强':'', hasAnyStar(c.ziwei,'父母',['化忌','地空','地劫'])?'父母宫见忌/空劫，早年回应感可能不稳定':'', hasAnyStar(c.ziwei,'夫妻',['化忌','地空','地劫'])?'夫妻宫见忌/空劫，亲密中容易触发条件感':'']),
+        scripts:['讨好、牺牲、顺从','用付出换爱，用懂事换安全','不敢直接提需求，一被拒绝就觉得自己不值得'],
+        reality:`这条脉络会让人把爱理解成一种交换：我足够好、足够懂事、足够有用，才不会被抛下。于是亲密关系里很难轻松要爱，反而不断证明自己值得被爱。`,
+        family:`如果家族里的爱常伴随评价、条件、牺牲或亏欠，孩子会学会把真实需求藏起来，用表现换回应。`,
+        question:`你最常用什么换取爱：成绩、付出、顺从、照顾别人，还是不添麻烦？`
+      }}
+    },
+    {
+      id:'shame', title:'第七条：完美羞耻', short:'我是否能失败，能不够好？',
+      check(c){ let s=0; if(c.officer>=2)s+=2; if(c.resource>=2.5)s+=1.5; if(c.output<1.2 && c.officer>=1.5)s+=1.5; if((c.wxC['金']||0)+(c.wxC['土']||0)>=5)s+=1.5; if(hasAnyStar(c.ziwei,'官禄',['化忌','陀罗','擎羊']))s+=2; if(hasAnyStar(c.ziwei,'福德',['化忌','巨门']))s+=1.2; return s;},
+      render(c){return {
+        signal: traumaSignalList([c.officer>=2?'官杀较重，规则、标准和评价压力明显':'',c.resource>=2.5?'印星较重，内在审查和“应该”感增强':'',c.output<1.2?'食伤偏弱，试错和表达出口不足':'',hasAnyStar(c.ziwei,'官禄',['化忌','陀罗'])?'官禄宫见忌/陀罗，事业表现容易牵动羞耻感':'']),
+        scripts:['怕失败、怕丢脸、怕被看见不够好','拖延，因为开始就意味着可能失败','一次错误容易被扩大成整个人的否定'],
+        reality:`完美在这里不是追求优秀，而是一副羞耻盔甲。人会以为只要足够正确、足够努力、足够没有漏洞，就不会被否定。可越害怕失败，越容易卡在开始之前。`,
+        family:`家族若长期用比较、批评、标准和体面来维持秩序，失败就不再是事件，而会变成身份羞耻。`,
+        question:`如果你失败了，你害怕失去的到底是什么：机会、面子，还是被爱的资格？`
+      }}
+    },
+    {
+      id:'compensation', title:'第八条：家族代偿', short:'我是否在替家族完成未完成的命运？',
+      check(c){ let s=0; if(c.resource>=2.8)s+=2; if(c.officer+c.wealth>=3.5)s+=2; if((c.wxC['土']||0)>=3)s+=1.2; if(hasAnyStar(c.ziwei,'父母',['紫微','化权','化忌']))s+=2; if(hasAnyStar(c.ziwei,'田宅',['化忌','地空','地劫']))s+=1.8; if(hasAnyStar(c.ziwei,'福德',['化忌']))s+=1.2; return s;},
+      render(c){return {
+        signal: traumaSignalList([c.resource>=2.8?'印星较重，家族、长辈、传承和照顾议题明显':'',c.officer+c.wealth>=3.5?'财官责任重，现实承担与证明压力强':'',(c.wxC['土']||0)>=3?'土重，责任、根基、家族系统感强':'',hasAnyStar(c.ziwei,'父母',['紫微','化权','化忌'])?'父母宫有权威/压力信号':'',hasAnyStar(c.ziwei,'田宅',['化忌','地空','地劫'])?'田宅宫见忌/空劫，家族根基议题容易被触发':'']),
+        scripts:['替父母争气，替祖辈翻身','救世主角色或替罪羊角色','把孩子、事业或成功当成家族命运出口'],
+        reality:`这条脉络常披着责任感、上进心、孝顺或“为你好”的外衣。人会以为自己只是在努力，其实背后可能背着整个家族未完成的命运。`,
+        family:`家族中的贫困、羞耻、失败、被轻视或未完成的成功愿望，可能会被后代接过来，变成“我必须证明我们家不是这样”的压力。`,
+        question:`你现在最用力追求的东西，是你的生命自然想创造，还是你在替家族完成某个未完成的答案？`
+      }}
+    },
+    {
+      id:'betrayal', title:'第九条：关系背叛', short:'我是否总在关系中感到被辜负、被利用、被抛下？',
+      check(c){ let s=0; if(c.peer>=2.5)s+=1.5; if(hasAnyStar(c.ziwei,'仆役',['廉贞','巨门','化忌','陀罗','地劫']))s+=3; if(c.bodyPalace==='仆役')s+=2; if(hasAnyStar(c.ziwei,'命宫',['巨门','廉贞']))s+=1; return s;},
+      render(c){return {
+        signal: traumaSignalList([c.bodyPalace==='仆役'?'身宫在仆役宫，后天功课落在人际/合作关系':'',hasAnyStar(c.ziwei,'仆役',['廉贞','化忌'])?'仆役宫见廉贞/化忌，人际忠诚与是非感强':'',c.peer>=2.5?'比劫较重，关系中竞争、比较和边界主题明显':'']),
+        scripts:['总遇到不可靠的人','被利用、被误解、被排除的感觉','朋友或合作关系中的深层失望'],
+        reality:`这类结构容易让人对忠诚、回应和立场变化特别敏感。外界一点不回应、误解或转身，都可能触发很深的被辜负感。重点不是“别人都不好”，而是关系会逼你看见自己如何信任、如何设边界。`,
+        family:`家族里若长期有孤立、被忽视、被利用或没人可靠的叙事，人就容易在关系中不断寻找证据：看吧，最后还是没人真正站在我这边。`,
+        question:`每一次关系里的失望，真正击中的不是事件本身，而是哪一个旧信念？`
+      }}
+    },
+    {
+      id:'intimacy', title:'第十条：亲密隔离', short:'我是否在最亲近的人面前仍保持距离？',
+      check(c){ let s=0; if(hasAnyStar(c.ziwei,'夫妻',['地空','地劫']))s+=3; if(hasAnyStar(c.ziwei,'夫妻',['化忌','巨门','廉贞']))s+=2; if(hasAnyStar(c.ziwei,'福德',['地空','地劫','化忌']))s+=1.2; if(c.wealth>=2 || c.officer>=2)s+=1; return s;},
+      render(c){return {
+        signal: traumaSignalList([hasAnyStar(c.ziwei,'夫妻',['地空','地劫'])?'夫妻宫见空劫，亲密中容易有空洞或距离感':'',hasAnyStar(c.ziwei,'夫妻',['太阳'])?'夫妻宫见太阳，关系里责任、功能与外在承担感明显':'',hasAnyStar(c.ziwei,'夫妻',['化忌'])?'夫妻宫见化忌，亲密议题容易触发旧伤':'']),
+        scripts:['关系里孤独，人在一起但心没有真正相遇','不敢暴露需求，用责任代替亲密','功能稳定，但最柔软的部分仍保持距离'],
+        reality:`亲密关系不一定不好，但容易出现一种“在一起，却有某些层面没有真正抵达”的感觉。人可能允许关系维持功能、责任和稳定，却不一定允许自己把最真实的需要暴露出来。`,
+        family:`如果家族里的亲密更多表现为责任、牺牲、控制或沉默，而不是柔软的回应，人就容易在最亲近的人面前反而保持距离。`,
+        question:`在亲密关系里，你最不愿意暴露的是需求、脆弱，还是渴望被照顾的部分？`
+      }}
+    },
+    {
+      id:'authority', title:'第十一条：权威压迫', short:'我内在是否住着父母、规则、家族评价的眼睛？',
+      check(c){ let s=0; if(hasAnyStar(c.ziwei,'父母',['紫微']))s+=2.5; if(hasAnyStar(c.ziwei,'父母',['化权']))s+=3; if(hasAnyStar(c.ziwei,'父母',['化忌','陀罗','擎羊']))s+=2; if(c.officer>=2)s+=1.5; if(c.resource>=2.2)s+=1; return s;},
+      render(c){return {
+        signal: traumaSignalList([hasAnyStar(c.ziwei,'父母',['紫微'])?'父母宫见紫微，家族权威感强':'',hasAnyStar(c.ziwei,'父母',['化权'])?'父母宫见化权，期待与控制感明显':'',c.officer>=2?'官杀较重，规则、评价与压力强':'']),
+        scripts:['父母的眼光成为内在审判官','害怕不体面、不正确、让家族失望','做选择时先问“这样够不够好”'],
+        reality:`父母形象不只是照顾者，也可能成为内在的标准、评判和秩序。你做选择时，可能先问：这样够不够体面？够不够证明？会不会让家族失望？`,
+        family:`这条脉络常连接到家族未完成的成功、翻身愿望和集体羞耻。孩子不只是孩子，也可能被放进“必须证明这个家没有失败”的位置。`,
+        question:`你现在追求的成功，有多少是你的生命自然要创造的？又有多少是在回应家族权威的眼光？`
+      }}
+    },
+    {
+      id:'agency', title:'第十二条：行动力转向', short:'我是否真的能从觉察走向改变？',
+      check(c){ let s=0; if(c.output<1.2)s+=1.5; if(c.isStrong && c.output<1.2)s+=1.5; if(c.isWeak && c.wealth+c.officer>=3)s+=1.5; if(hasAnyStar(c.ziwei,'官禄',['天梁']))s+=1.5; if(hasAnyStar(c.ziwei,'官禄',['陀罗','地劫','化忌','擎羊']))s+=3; if(hasAnyStar(c.ziwei,'迁移',['破军','七杀','化忌']))s+=1.2; return s;},
+      render(c){return {
+        signal: traumaSignalList([hasAnyStar(c.ziwei,'官禄',['天梁'])?'官禄宫见天梁，事业方向带保护、疗愈、教育、引导意味':'',hasAnyStar(c.ziwei,'官禄',['陀罗','地劫','化忌'])?'官禄宫见阻滞/耗损信号，推进容易反复纠缠':'',c.output<1.2?'食伤不足，输出和作品化需要训练':'',c.isWeak && c.wealth+c.officer>=3?'日主偏弱而财官重，容易被外部任务压住行动力':'']),
+        scripts:['觉察很多但不行动','反复开始又停下','成功恐惧，改变时旧剧本反扑'],
+        reality:`这里的拖延不一定是懒，而是方向越重要，阻力越大。真正走出去，意味着你不再只是理解痛苦，而要把理解变成现实影响力。`,
+        family:`家族里若有“成功很危险”“出头会被打压”“做大了会失控”的隐性记忆，人就可能在最关键的地方自动刹车。`,
+        question:`那个在事业上反复拖延和退缩的自己，在保护你不受什么伤害？如果你真的做成了，你最害怕发生什么？`
+      }}
+    }
+  ];
+}
+const TRAUMA_EN_TEXT = {
+  existence:{title:'Permission to Exist',short:'Am I allowed to take up space?',reality:'This is not about ability. It is about whether a person truly permits themselves to exist, need, ask, and occupy space without first becoming useful.',family:'This often comes from family systems shaped by scarcity, sacrifice, or emotional non-response. A child learns to be smaller in order to be safe.',question:'Where did you first learn that taking up space was unsafe?'},
+  worth:{title:'Worth Through Proof',short:'Must I achieve something before I have value?',reality:'This pattern outsources self-worth to results. Success brings temporary relief; lack of visible outcome can feel like personal negation.',family:'Families that rely on achievement, status, or survival success for safety can pass down the belief that value must be proven.',question:'Who are you without achievement, title, income, or visible proof?'},
+  unworthy:{title:'Not Being Allowed to Have',short:'When a larger desire appears, the inner voice first asks, “Do I deserve this?”',reality:'This is not a lack of ability. It is the fear that appears when success, visibility, or influence becomes larger. A person may shrink the wish, hide ambition, or step back just as opportunity arrives.',family:'This often comes from a family attitude toward success that is both hungry for achievement and afraid of visibility, shame, comparison, or control.',question:'When you say, “I want something bigger,” whose voice appears first inside your body?'},
+  expression:{title:'Emotional Expression',short:'Are my feelings allowed to be spoken?',reality:'Insight may remain inside the body. Talent may pass through self-censorship before it becomes visible. When it is time to publish, speak, or show the work, the body may feel unsafe.',family:'If expressing real needs once brought shame, rejection, punishment, or no response, the next generation learns to swallow words and hide talent.',question:'When you prepare to show your insight to the world, what does the stopping voice fear?'},
+  safety:{title:'Safety Defense and Hard Armor',short:'Is the world dangerous? Must I defend before I connect?',reality:'Hardness does not mean there are no feelings. Feelings may first be wrapped in logic, judgment, standards, and defense. Sadness becomes silence; hurt becomes coldness; need becomes “I do not need anyone.”',family:'Many families teach people to endure instead of expressing vulnerability. Hardness protects, but it also blocks real connection.',question:'What did your hardness first protect? What does it now prevent you from receiving?'},
+  conditional_love:{title:'Conditional Love',short:'Must I perform, give, or behave well to be loved?',reality:'Love can become an exchange: I must be good, useful, obedient, or giving enough so I will not be abandoned.',family:'If love in the family came with evaluation, sacrifice, debt, or conditions, real needs become hidden behind performance.',question:'What do you most often use to earn love: achievement, care-taking, obedience, or not making trouble?'},
+  shame:{title:'Perfection and Shame',short:'Am I allowed to fail or be imperfect?',reality:'Perfection becomes armor against shame. The person may delay action because beginning means becoming visible and possibly failing.',family:'A family culture of comparison, criticism, standards, or respectability can turn mistakes into identity-level shame.',question:'If you fail, what do you fear losing: opportunity, face, or the right to be loved?'},
+  compensation:{title:'Family Compensation',short:'Am I living for an unfinished family destiny?',reality:'Responsibility, ambition, and devotion may hide a deeper burden: carrying what the family could not complete.',family:'Poverty, shame, humiliation, or unfinished success can be passed down as a command to prove the family is not a failure.',question:'Is your strongest pursuit truly yours, or are you finishing an old family sentence?'},
+  betrayal:{title:'Relationship Betrayal',short:'Do relationships repeatedly activate disappointment, use, or abandonment?',reality:'This pattern can make loyalty, response, and changes of position feel especially sensitive. A small silence or misunderstanding can activate a deep feeling of being abandoned or betrayed.',family:'If the family history contains isolation, neglect, use, or nobody being reliable, later relationships may keep looking for proof that no one truly stands with you.',question:'When disappointment appears in a relationship, which older belief does it touch?'},
+  intimacy:{title:'Intimacy Isolation',short:'Do I remain distant even with the people closest to me?',reality:'The relationship may function, but a deeper self may remain hidden. Stability, duty, and shared life may exist while the most vulnerable needs stay protected.',family:'If intimacy in the family was expressed mostly as duty, sacrifice, control, or silence, closeness may later feel safer when some distance remains.',question:'In intimacy, what are you least willing to reveal: need, weakness, or the wish to be cared for?'},
+  authority:{title:'Authority Pressure',short:'Does an inner parental or family gaze keep judging whether you are good enough?',reality:'Parents may become not only caregivers, but also internal standards, judgment, and order. Before choosing, a person may ask: Is this respectable enough? Does this prove enough? Will this disappoint the family?',family:'This theme often connects to unfinished family ambition, shame, and the pressure to prove that the family has not failed.',question:'How much of your ambition comes from your own life force, and how much is still answering the family gaze?'},
+  agency:{title:'Agency and Life Direction',short:'Can I move from insight into actual change?',reality:'This is not necessarily laziness. The more meaningful the direction is, the stronger the resistance can become. To move outward means turning understanding into real influence.',family:'If the family carries memories such as “success is dangerous,” “visibility brings attack,” or “doing big things leads to loss of control,” the person may brake at key moments.',question:'What injury is the delaying self trying to protect you from? If you truly succeed, what are you afraid will happen?'}
+};
+function renderTraumaLines(chart){
+  const area=document.getElementById('trauma-area');
+  if(!area) return;
+  const allRules=buildTraumaRules();
+  const scoredRules=allRules.map(rule=>({rule, score:rule.check(chart)})).sort((a,b)=>b.score-a.score);
+  const rules=scoredRules.filter(x=>x.score>=2.5);
+  const selected=(rules.length ? rules : scoredRules).slice(0,5);
+  const topTitlesZh=selected.slice(0,3).map(x=>x.rule.title.replace(/^第.+?条：/,'')).join('、');
+  const topTitlesEn=selected.slice(0,3).map(x=>(TRAUMA_EN_TEXT[x.rule.id]||{}).title||x.rule.title).join(', ');
+  let html=`<div class="trauma-hero zh">
+    <div class="trauma-kicker">自动识别结果</div>
+    <div class="trauma-headline">这张命盘最值得优先看的主脉络是：${topTitlesZh || '情绪表达、价值证明与行动转向'}。</div>
+    <div class="trauma-sub">八字：${chart.gz}。日主${chart.dayStem}${chart.dayWx}${chart.strength.level}，五行分布为${['木','火','土','金','水'].map(w=>w+'×'+chart.wxC[w]).join('、')}。下面先显示优先脉络的详细解读，不再把十二条列表放在前面挡住。</div>
+  </div>`;
+  html += `<div class="trauma-hero en" style="display:none">
+    <div class="trauma-kicker">Automatic Reading</div>
+    <div class="trauma-headline">The most important family-emotional lines to examine are: ${topTitlesEn || 'emotional expression, self-worth, and life direction'}.</div>
+    <div class="trauma-sub">BaZi: ${chart.gz}. Day Master: ${chart.dayStem} ${chart.dayWx}, ${chart.strength.level}. The detailed priority patterns are shown first.</div>
+  </div>`;
+
+  html += `<div class="analysis-card zh" style="border-color:var(--gold);background:rgba(176,132,42,0.055)">
+    <div class="analysis-step-title">事业权威信号库已进入本次解读</div>
+    <div class="analysis-body">以下每条优先脉络都会明确显示：<strong>命盘信号</strong>、<strong>事业权威</strong>、<strong>综合判断</strong>、子剧本、现实表现、家族剧本和转化功课。这里的事业权威不是判断官运，而是把官杀、印星、七杀、伤官、财官、格局清浊翻译成成功、评价、资格、权威和被看见的主题。</div>
+  </div>`;
+
+  selected.forEach((x,idx)=>{
+    const data=x.rule.render(chart,x.score);
+    const en=TRAUMA_EN_TEXT[x.rule.id]||{};
+    html += `<div class="trauma-card zh ${idx===0?'primary':''}">
+      <div class="trauma-score">命盘提示：${scoreLabelZh(x.score)} · ${x.score.toFixed(1)}</div>
+      <div class="trauma-rank">第 ${idx+1} 条优先脉络</div>
+      <div class="trauma-title">${x.rule.title}</div>
+      <div class="trauma-body" style="margin-bottom:0.7rem;color:var(--ink)">${scoreGuideZh(x.score)}</div>
+      <div class="trauma-section-title">命盘信号</div>
+      <div class="trauma-body">${normalizeTraumaSignal(x.rule.id, chart, data.signal)}</div>
+      <div class="trauma-section-title">事业权威</div>
+      <div class="trauma-body">${businessAuthorityLineForTrauma(x.rule.id, chart) || '当前命盘没有形成特别强的事业权威信号；这一条先以家族情绪与八字/紫微信号为主。'}</div>
+      <div class="trauma-section-title">综合判断</div>
+      <div class="trauma-body">${TRAUMA_SIGNAL_SUMMARIES[x.rule.id] || '这些信号共同构成一条可观察的情绪脉络，但不是宿命定论。'}</div>
+      <div class="trauma-section-title">子剧本</div>
+      <div class="trauma-body">${traumaSubList(data.scripts)}</div>
+      <div class="trauma-section-title">现实表现</div>
+      <div class="trauma-body">${data.reality}</div>
+      <div class="trauma-section-title">家族剧本</div>
+      <div class="trauma-body">${data.family}</div>
+      <div class="trauma-question"><strong>转化功课：</strong>${data.question}</div>
+    </div>`;
+    html += `<div class="trauma-card en ${idx===0?'primary':''}" style="display:none">
+      <div class="trauma-score">Chart Signal: ${scoreLabelEn(x.score)} · ${x.score.toFixed(1)}</div>
+      <div class="trauma-rank">Priority Pattern ${idx+1}</div>
+      <div class="trauma-title">${en.title||x.rule.title}</div>
+      <div class="trauma-body" style="margin-bottom:0.7rem;color:var(--ink)">${scoreGuideEn(x.score)}</div>
+      <div class="trauma-section-title">Chart Signal</div>
+      <div class="trauma-body">${en.short||'This pattern is activated by several chart signals.'}</div>
+      <div class="trauma-section-title">Real-Life Pattern</div>
+      <div class="trauma-body">${en.reality||'This pattern describes how chart structure can become an emotional or relational pattern in real life.'}</div>
+      <div class="trauma-section-title">Family Script</div>
+      <div class="trauma-body">${en.family||'This may connect to inherited family expectations, silence, fear, or unfinished emotional history.'}</div>
+      <div class="trauma-question"><strong>Reflection Practice: </strong>${en.question||'What old family belief is being activated here?'}</div>
+    </div>`;
+  });
+
+  html += renderBaziFoundationCards(chart);
+  html += renderAuthorityFoundationCards(chart);
+  html += `<div class="analysis-card zh"><div class="analysis-step-title">十二条脉络总览</div><div class="analysis-body">上面是优先展开的详细解读；下面是十二条主脉络的整体提示，用来作为背景观察。</div></div>`;
+  html += `<div class="trauma-map zh">` + allRules.map(r=>{
+    const found=rules.find(x=>x.rule.id===r.id); const sc=found?found.score:0;
+    const label=sc?scoreLabelZh(sc):'轻微';
+    return `<div class="trauma-chip"><strong>${r.title.replace(/^第.+?条：/,'')}</strong><span>命盘提示：${label}｜${sc?scoreGuideZh(sc):'这条脉络不是当前命盘的明显主线，但仍可作为背景观察。'}</span></div>`;
+  }).join('') + `</div>`;
+  html += `<div class="trauma-map en" style="display:none">` + allRules.map(r=>{
+    const found=rules.find(x=>x.rule.id===r.id); const sc=found?found.score:0;
+    const en=TRAUMA_EN_TEXT[r.id]||{title:r.title,short:r.short};
+    const label=sc?scoreLabelEn(sc):'Light';
+    return `<div class="trauma-chip"><strong>${en.title}</strong><span>Chart Signal: ${label} | ${sc?scoreGuideEn(sc):'This does not appear as a major pattern in the current chart, but it can still be used as background reflection.'}</span></div>`;
+  }).join('') + `</div>`;
+  html += `<div class="analysis-card zh"><div class="analysis-step-title">使用提醒</div><div class="analysis-body">这个模块已经从八条扩展为十二条主脉络，并会在每条下显示更细的子剧本。它仍然是规则引擎版，适合做自我觉察入口，不等于最终定论。</div></div>`;
+  area.innerHTML=html;
+  if(currentLang==='en') setLang('en');
+}
+
+
+</script>
+</body>
+</html>
