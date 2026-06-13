@@ -656,6 +656,9 @@ body:not(.en) .en-fallback-note { display: none !important; }
   .pillars{gap:0}
   .pillar-char{font-size:1.8rem}
   .tab-btn{padding:0.6rem 0.8rem;font-size:0.75rem}
+
+  .iching-grid{grid-template-columns:1fr}
+
 }
 
 
@@ -789,7 +792,7 @@ body:not(.en) .en-fallback-note { display: none !important; }
   </div>
   <div class="logo-zh">命　盘</div>
   <div class="logo-en">Destiny Chart</div>
-  <div class="tagline zh">八字 · 紫微斗数 · 家族剧本 · 事业权威</div>
+  <div class="tagline zh">八字 · 紫微斗数 · 家族剧本 · 事业权威 · 问事解卦</div>
   <div class="tagline en" style="display:none">BaZi · Zi Wei Dou Shu · Life Cycles</div>
 </header>
 
@@ -884,6 +887,9 @@ body:not(.en) .en-fallback-note { display: none !important; }
     <button class="tab-btn" onclick="showTab(4)">
       <span class="zh">家族剧本</span><span class="en" style="display:none">Family Script</span>
     </button>
+    <button class="tab-btn" onclick="showTab(5)">
+      <span class="zh">问事解卦</span><span class="en" style="display:none">I Ching</span>
+    </button>
   </div>
 
   <!-- BAZI TAB -->
@@ -963,6 +969,51 @@ body:not(.en) .en-fallback-note { display: none !important; }
       <div class="trauma-sub en" style="display:none">The strongest patterns are selected from twelve family-script lines and expanded into sub-scripts, chart signals, and reflection practices.</div>
     </div>
     <div id="trauma-area"></div>
+  </div>
+
+  <!-- I CHING TAB -->
+  <div class="tab-sec" id="tab5">
+    <div class="trauma-hero">
+      <div class="trauma-kicker zh">问 事 解 卦</div>
+      <div class="trauma-kicker en" style="display:none">I CHING QUESTION</div>
+      <div class="trauma-headline zh">命盘看长期结构，卦象看当下这件事的状态与转向。</div>
+      <div class="trauma-headline en" style="display:none">The destiny chart reads long-term structure; the hexagram reads the present question.</div>
+      <div class="trauma-sub zh">输入你要问的事情，选择主卦与变卦。系统会用“当前状态、后续走向、核心变化、行动建议”来解读，不做恐吓式吉凶断语。</div>
+      <div class="trauma-sub en" style="display:none">Enter a question and choose the original and changed hexagrams. The reading focuses on present structure, direction, change, and practical action.</div>
+    </div>
+    <div class="iching-card zh">
+      <div class="iching-grid">
+        <div class="iching-field iching-full">
+          <label>要问的事情</label>
+          <textarea id="iching-question" placeholder="例如：这个网站能不能做起来？这次申请会不会顺利？我和某人的关系后面怎么走？"></textarea>
+        </div>
+        <div class="iching-field">
+          <label>主卦：现在的状态</label>
+          <select id="main-hex"></select>
+        </div>
+        <div class="iching-field">
+          <label>变卦：后续的转向</label>
+          <select id="change-hex"></select>
+        </div>
+        <div class="iching-field iching-full">
+          <label>动爻（可选）</label>
+          <select id="moving-line">
+            <option value="unknown">不知道 / 不使用动爻</option>
+            <option value="1">初爻</option>
+            <option value="2">二爻</option>
+            <option value="3">三爻</option>
+            <option value="4">四爻</option>
+            <option value="5">五爻</option>
+            <option value="6">上爻</option>
+          </select>
+        </div>
+      </div>
+      <button class="iching-btn" onclick="interpretIChing()">解　卦</button>
+      <div id="iching-result" class="iching-result"></div>
+    </div>
+    <div class="iching-card en" style="display:none">
+      <div class="iching-body">The I Ching question module is currently optimized in Chinese. Switch to Chinese for the full interpretive language.</div>
+    </div>
   </div>
 </div>
 
@@ -3341,6 +3392,152 @@ function renderTraumaLines(chart){
   area.innerHTML=html;
   if(currentLang==='en') setLang('en');
 }
+
+
+// ========== I CHING QUESTION MODULE ==========
+const HEXAGRAMS = [
+  {n:1,name:'乾为天',key:'乾',theme:'强健、主动、开创',state:'这件事的主气很强，带着开创、推动、承担和向上突破的力量。它不是被动等待的局，而是需要有人主动定方向、立规则、承担结果。',advice:'可以行动，但不要只靠意志硬推。乾卦最怕过刚，越是想成事，越需要节制、秩序和长期稳定的执行。'},
+  {n:2,name:'坤为地',key:'坤',theme:'承载、顺势、积累',state:'这件事当前更需要承接、整理、配合和等待条件成熟。它不是靠猛冲打开，而是靠把基础铺稳，让资源慢慢聚拢。',advice:'不要急着争主动权。先确认现实条件、支持系统和可持续节奏，顺势而为反而更容易成。'},
+  {n:3,name:'水雷屯',key:'屯',theme:'初生、混乱、开局困难',state:'事情处在刚开始的混沌阶段，有生机，但结构还不稳。看起来乱，不代表没希望，而是条件、人员、方法还没完全排好。',advice:'先不要急着求结果。把问题拆小，先解决最卡的一环，找到第一个能推动局面的支点。'},
+  {n:4,name:'山水蒙',key:'蒙',theme:'不明、学习、启蒙',state:'这件事里有信息不足、认知不清或经验不够的部分。现在最重要的不是立刻判断输赢，而是先弄明白规则。',advice:'先问清楚、学清楚、看清楚。不要在模糊状态下做大决定，也不要因为不懂而自我否定。'},
+  {n:5,name:'水天需',key:'需',theme:'等待、蓄势、时机',state:'事情不是不能成，而是还不到完全发力的时候。当前需要等待时机、积累资源、保持耐心。',advice:'等不是放弃，而是有准备地等。先把能准备的材料、人脉、能力和备用方案准备好。'},
+  {n:6,name:'天水讼',key:'讼',theme:'争执、分歧、立场冲突',state:'这件事里有意见不合、边界不清或双方立场互相顶住的情况。继续硬碰容易消耗。',advice:'先把事实、责任和底线写清楚。不要用情绪争输赢，要用规则和证据减少纠缠。'},
+  {n:7,name:'地水师',key:'师',theme:'组织、纪律、团队行动',state:'事情需要组织、纪律和明确指挥，不适合各自为战。只要队形稳，事情有推进空间。',advice:'建立清晰分工和节奏。先定谁负责、怎么做、何时检查，不要让混乱吞掉力量。'},
+  {n:8,name:'水地比',key:'比',theme:'靠近、合作、结盟',state:'这件事关键在于人和人之间是否能靠近、互信、形成同盟。单打独斗会弱，找到同路人会强。',advice:'看清谁是真支持，谁只是表面靠近。主动建立信任，但不要没有边界地依附。'},
+  {n:9,name:'风天小畜',key:'小畜',theme:'小有积累、暂时受限',state:'事情已有一点积累，但力量还不够大。现在像云聚未雨，不能强求马上爆发。',advice:'继续积累细节和信用。小步推进，比一次性求大结果更合适。'},
+  {n:10,name:'天泽履',key:'履',theme:'谨慎行走、礼与边界',state:'事情有风险感，需要谨慎踩点。不是不能走，而是每一步都要有分寸。',advice:'守礼、守规则、守边界。尤其不要因为急于证明而越界。'},
+  {n:11,name:'地天泰',key:'泰',theme:'通达、上下相交、顺畅',state:'这件事处在比较通畅的状态，上下可以交流，内外有机会配合。',advice:'趁顺势推进，但不要放松结构。顺的时候更要把制度和成果固定下来。'},
+  {n:12,name:'天地否',key:'否',theme:'闭塞、不通、隔绝',state:'事情目前有堵塞感，上下不通、内外不接，想法和现实之间有隔层。',advice:'不要硬撞墙。先找堵点在哪里，是信息不通、关系不通，还是时机不通。'},
+  {n:13,name:'天火同人',key:'同人',theme:'共同目标、公开合作',state:'事情需要走到公开、清楚、共同目标的层面。一个人的愿望不够，需要形成共识。',advice:'把共同利益讲清楚。越透明，越容易聚人；越含糊，越容易误解。'},
+  {n:14,name:'火天大有',key:'大有',theme:'拥有、丰盛、资源在手',state:'这件事有资源、有亮点、有被看见的可能。它不是空局，关键是如何管理已有之物。',advice:'不要因为拥有而松散，也不要因为怕失去而抓太紧。把资源转成结构和成果。'},
+  {n:15,name:'地山谦',key:'谦',theme:'谦下、收敛、稳进',state:'事情适合低姿态推进。真正的力量不在高调，而在稳、准、能持续。',advice:'少说满话，多做实事。谦不是退缩，而是不把能量浪费在表现上。'},
+  {n:16,name:'雷地豫',key:'豫',theme:'预备、动员、情绪鼓舞',state:'事情有被动员起来的迹象，情绪、期待和氛围开始上升。',advice:'可以鼓舞人心，但要防止只兴奋不落实。把热情变成行动计划。'},
+  {n:17,name:'泽雷随',key:'随',theme:'跟随、适应、顺势调整',state:'这件事需要跟随变化而调整，不宜死守原方案。随不是盲从，而是看清趋势后灵活转向。',advice:'观察局势，调整姿态。跟对节奏比坚持面子更重要。'},
+  {n:18,name:'山风蛊',key:'蛊',theme:'旧问题、修复、清理败坏',state:'事情背后有旧问题、旧习惯或长期积累的失序。现在不是简单推进，而是先修坏掉的地方。',advice:'别怕翻旧账。该清理的关系、流程、信念和责任必须清理，否则新事会被旧问题拖住。'},
+  {n:19,name:'地泽临',key:'临',theme:'靠近、监督、机会来到',state:'事情有靠近和展开的机会，外部关注或资源开始接近。',advice:'机会来了，但要稳重迎接。不要因为有人看见就急着表现过度。'},
+  {n:20,name:'风地观',key:'观',theme:'观察、看见、被看见',state:'这件事现在的重点是观察。你在看局势，别人也可能在看你。',advice:'先看清全局再行动。注意自己呈现出来的形象和信号。'},
+  {n:21,name:'火雷噬嗑',key:'噬嗑',theme:'咬合、处理阻碍、规则执行',state:'事情中有一个硬阻碍，需要被处理、切开或明确裁决。绕过去不如正面解决。',advice:'把卡点具体化。该谈清楚的谈清楚，该执行规则的执行规则。'},
+  {n:22,name:'山火贲',key:'贲',theme:'修饰、呈现、包装',state:'事情和外在呈现、形象、表达方式有关。内容需要被修饰，但不能只剩包装。',advice:'可以美化表达，但不要让形式掩盖真实。外观要服务核心。'},
+  {n:23,name:'山地剥',key:'剥',theme:'剥落、削弱、基础受损',state:'事情有被消耗、被剥离、根基变薄的迹象。继续强撑可能更损耗。',advice:'先止损，保核心。不要为了维持表面完整而牺牲根基。'},
+  {n:24,name:'地雷复',key:'复',theme:'返回、恢复、重新开始',state:'事情有回头、恢复、重新开始的机会。不是大爆发，而是生命力重新回来。',advice:'从小处恢复节奏。不要嫌慢，复卦贵在重新接上正轨。'},
+  {n:25,name:'天雷无妄',key:'无妄',theme:'真实、非人为、不可妄动',state:'事情需要真实和正当，不适合过度设计或妄求。越想操控，越容易偏。',advice:'回到事实和本心。不要用幻想替代现实，也不要为了结果做不正的动作。'},
+  {n:26,name:'山天大畜',key:'大畜',theme:'大积累、蓄养、克制力量',state:'事情有较大的潜能，但需要被蓄住、养住、训练住。现在的关键是积累而不是释放。',advice:'把能力存起来、练扎实。越大的事，越不能急着亮出来。'},
+  {n:27,name:'山雷颐',key:'颐',theme:'滋养、口舌、养成',state:'事情和滋养、表达、输入输出有关。你需要看自己吃进什么、说出什么、靠什么养自己。',advice:'调整信息来源和表达方式。少被消耗性语言喂养，多建立真正滋养自己的系统。'},
+  {n:28,name:'泽风大过',key:'大过',theme:'压力过重、结构超载',state:'事情承重过大，梁木将折。不是没有能力，而是结构已经超载。',advice:'减负、重组、找支撑。不要继续一个人扛全部。'},
+  {n:29,name:'坎为水',key:'坎',theme:'险阻、重复陷阱、情绪深处',state:'事情处在险中，可能有反复、恐惧、情绪波动或看不见的坑。',advice:'谨慎前行，先保证安全。不要急着脱险，先看清险在哪里。'},
+  {n:30,name:'离为火',key:'离',theme:'依附、明亮、看见真相',state:'事情需要清晰、照见和依附正确对象。它有光，但也可能过热。',advice:'把事实照亮。不要只追求热度，要找到真正可依附的结构。'},
+  {n:31,name:'泽山咸',key:'咸',theme:'感应、吸引、互相触动',state:'事情里有感应和吸引，关系、情绪或机会互相触动。',advice:'顺着真实感受观察，但不要被一时触动带走。感应之后还要看是否能稳定。'},
+  {n:32,name:'雷风恒',key:'恒',theme:'长期、稳定、持续',state:'事情需要长期稳定的节奏。不是靠一时兴起，而是靠持续。',advice:'建立可重复的习惯和承诺。真正的结果来自长期不变的核心。'},
+  {n:33,name:'天山遁',key:'遁',theme:'退避、保存、远离消耗',state:'事情不适合正面硬拼。退不是失败，而是保存力量，避开不利环境。',advice:'该退就退，该避就避。先保住自己，再谈下一步。'},
+  {n:34,name:'雷天大壮',key:'大壮',theme:'强势、扩张、力量上升',state:'事情力量很强，有扩张和突破的势头。但大壮也容易过猛。',advice:'有力可以推进，但必须守正。不要因为力量大就忽略边界。'},
+  {n:35,name:'火地晋',key:'晋',theme:'上升、被看见、进展',state:'事情有上升、推进、被看见的趋势。它适合逐步公开和向前。',advice:'稳步展示成果。越往上走，越要保持清楚的方向和谦逊。'},
+  {n:36,name:'地火明夷',key:'明夷',theme:'光受伤、隐藏锋芒',state:'事情中有光被压住、能力被遮蔽或不宜公开的情况。',advice:'暂时保护锋芒。不是没有光，而是现在不适合把全部暴露出来。'},
+  {n:37,name:'风火家人',key:'家人',theme:'家庭、内部秩序、角色责任',state:'事情和内部关系、家庭结构、团队角色有关。外面的结果取决于里面是否有序。',advice:'先理清内部角色和责任。家人卦不是只讲家，而是讲系统内部的秩序。'},
+  {n:38,name:'火泽睽',key:'睽',theme:'分歧、不同路、看法相左',state:'事情中有分歧和不一致。不是完全不能合作，而是双方看的方向不同。',advice:'承认差异，不要强求一致。先找最小共同点。'},
+  {n:39,name:'水山蹇',key:'蹇',theme:'艰难、阻路、需要援助',state:'事情前方有明显阻碍，靠硬走会很累。需要停下来找帮助或换路。',advice:'不要孤军奋战。先找支持、顾问、资源，或者换一个更可行的路径。'},
+  {n:40,name:'雷水解',key:'解',theme:'解除、松动、压力释放',state:'事情有松动和解除阻碍的趋势。原来紧绷的地方开始有出口。',advice:'趁阻力松开时处理问题。不要再制造新的纠结，轻装前进。'},
+  {n:41,name:'山泽损',key:'损',theme:'减少、取舍、舍小保大',state:'事情需要减少、取舍、收缩。损不是坏，而是用减少来保住核心。',advice:'砍掉不必要的部分。先问：什么东西正在消耗真正重要的东西？'},
+  {n:42,name:'风雷益',key:'益',theme:'增加、助力、成长',state:'事情有增益和获得帮助的趋势。适合扩充资源、学习和互相成就。',advice:'接受帮助，也主动帮助别人。益卦的关键是流通，不是独占。'},
+  {n:43,name:'泽天夬',key:'夬',theme:'决断、摊牌、去除阻碍',state:'事情到了需要决断的时候。拖延会让问题更明显。',advice:'清楚表态，果断处理。但决断要正，不要带着报复或情绪失控。'},
+  {n:44,name:'天风姤',key:'姤',theme:'相遇、突发、诱因出现',state:'事情有突然相遇、突发机会或诱因出现。它有吸引力，也有不可控。',advice:'先观察这个出现的人或机会是否可靠。不要被一时强烈吸引带走。'},
+  {n:45,name:'泽地萃',key:'萃',theme:'聚集、资源汇合、人群',state:'事情进入聚集阶段，人、资源、关注开始汇合。',advice:'把聚集来的力量组织起来。人多不等于成事，关键是共同目标。'},
+  {n:46,name:'地风升',key:'升',theme:'上升、渐进、成长',state:'事情不是突然成功，而是一步步上升。只要方向对，会慢慢见高。',advice:'走长期路线。不要因为短期慢就怀疑，升卦贵在持续积累。'},
+  {n:47,name:'泽水困',key:'困',theme:'受困、资源不足、内在压力',state:'事情处在受困状态，外部资源不足，内在也容易疲惫。',advice:'先承认困境，不要硬装轻松。保留核心信念，减少无效消耗，等出口出现。'},
+  {n:48,name:'水风井',key:'井',theme:'资源之源、稳定供给、旧井更新',state:'事情的关键在资源系统和供给源头。井在，不代表水自动被取出来。',advice:'修井比找新水更重要。检查你的基础资源、内容库、支持系统是否能持续供给。'},
+  {n:49,name:'泽火革',key:'革',theme:'变革、更新、旧结构改变',state:'事情到了需要改变旧结构的时候。继续修补可能不够，需要真正换法。',advice:'变革要有时机和正当性。先让别人看见为什么必须改。'},
+  {n:50,name:'火风鼎',key:'鼎',theme:'成器、转化、建立新秩序',state:'事情有把材料炼成成果的可能。鼎卦重在转化和成器。',advice:'把零散资源放进一个稳定结构里。真正的价值来自系统化。'},
+  {n:51,name:'震为雷',key:'震',theme:'震动、惊醒、突发推动',state:'事情有震动和惊醒的意味，可能突然发生、突然推进或突然暴露问题。',advice:'先稳住，不要被第一波震动吓倒。震后看清方向，反而能启动。'},
+  {n:52,name:'艮为山',key:'艮',theme:'停止、边界、止住',state:'事情需要停下来。不是所有停顿都是坏，有些停止是为了不再错误前进。',advice:'止住冲动，确认边界。现在最重要的是知道哪里该停。'},
+  {n:53,name:'风山渐',key:'渐',theme:'渐进、步骤、循序成长',state:'事情需要一步步来，不能跳级。慢有慢的秩序。',advice:'制定阶段计划。每一步都走稳，比追求立刻结果更有利。'},
+  {n:54,name:'雷泽归妹',key:'归妹',theme:'位置不正、关系未稳、急于结合',state:'事情有急于结合、角色不稳或位置不完全正的情况。',advice:'不要急着定局。先看双方位置是否对等，条件是否成熟。'},
+  {n:55,name:'雷火丰',key:'丰',theme:'丰盛、高潮、光大',state:'事情有丰盛和高峰的状态，能量很亮，但高峰也不会永久。',advice:'趁高峰做成关键成果，同时准备下一阶段，不要沉迷热度。'},
+  {n:56,name:'火山旅',key:'旅',theme:'在外、暂居、过渡',state:'事情处在过渡和不稳定环境中，不宜把临时状态当永久。',advice:'守礼、轻装、少依赖。先完成过渡任务，不要过早扎根。'},
+  {n:57,name:'巽为风',key:'巽',theme:'进入、渗透、柔顺推进',state:'事情适合柔性进入、慢慢影响，而不是硬碰硬。',advice:'用持续的小动作渗透。态度柔，方向要稳。'},
+  {n:58,name:'兑为泽',key:'兑',theme:'喜悦、沟通、口舌',state:'事情和沟通、愉悦、表达有关。说得好可以打开，说不好也会变成口舌。',advice:'把话说清楚、说柔和。不要用一时情绪破坏关系。'},
+  {n:59,name:'风水涣',key:'涣',theme:'涣散、解散、重新流动',state:'事情有散开、松动、从僵硬中流出的趋势。它可能是解冻，也可能是分散。',advice:'先把堵住的情绪和结构疏通，再谈凝聚。不要怕散，散后才能重新聚。'},
+  {n:60,name:'水泽节',key:'节',theme:'节制、限制、规则',state:'事情需要节制和边界。限制不是坏事，好的限制能保护长期发展。',advice:'设定规则、预算、时间线和边界。没有节制的扩张会变成消耗。'},
+  {n:61,name:'风泽中孚',key:'中孚',theme:'诚信、内在相信、真实感应',state:'事情关键在信任。不是表面承诺，而是内在是否真的相信。',advice:'回到诚意。真诚会打开局面，虚的包装会被看穿。'},
+  {n:62,name:'雷山小过',key:'小过',theme:'小事谨慎、略过常规、不可大动',state:'事情适合小动作、小修正，不适合大规模冒进。',advice:'小心细节，低飞通过。先把小问题处理好，不要把小过变成大错。'},
+  {n:63,name:'水火既济',key:'既济',theme:'已成、完成后的维护',state:'事情看似已经完成或接近完成，但完成之后反而最怕松懈。',advice:'不要以为结束了。检查漏洞，维护成果，防止成中生乱。'},
+  {n:64,name:'火水未济',key:'未济',theme:'未完成、最后关口、重新校准',state:'事情还没真正完成，差最后的整合与校准。它有希望，但不能急着宣布结束。',advice:'继续调整顺序和细节。未济不是失败，而是提醒你还差关键一步。'}
+];
+
+function initIChing(){
+  const main=document.getElementById('main-hex');
+  const change=document.getElementById('change-hex');
+  if(!main||!change||main.options.length) return;
+  const opts=HEXAGRAMS.map(h=>`<option value="${h.n}">${h.n}. ${h.name}（${h.theme}）</option>`).join('');
+  main.innerHTML=opts;
+  change.innerHTML=opts;
+  main.value='3';
+  change.value='40';
+}
+function getHex(n){ return HEXAGRAMS.find(h=>h.n===parseInt(n)) || HEXAGRAMS[0]; }
+function movingLineMeaning(v){
+  const map={
+    '1':'初爻代表事情的起点、根基和最早的动因。重点看开局是否稳，是否一开始就方向不清。',
+    '2':'二爻代表现实位置、执行层和可落地性。重点看这件事有没有可操作的支撑。',
+    '3':'三爻代表进退之间的压力，容易多想、急进或卡在选择上。重点是不要在不稳时强行跨越。',
+    '4':'四爻代表接近外部位置、资源和更高层评价。重点看能不能得到支持，也要防越位。',
+    '5':'五爻代表核心位置、主导权和最终判断。重点看谁真正能定局，事情是否进入关键决策层。',
+    '6':'上爻代表事情发展到末端后的余波。重点看是否过头、是否该收束或转换方向。'
+  };
+  return map[v]||'';
+}
+function changeBridge(a,b){
+  if(a.n===b.n) return `主卦和变卦相同，说明这件事的结构暂时没有明显转向。重点不是等待外部突然变化，而是在同一个主题里把功课做深。`;
+  const pairs={
+    '3-40':'从「屯」到「解」，是从开局混乱走向压力松动。事情一开始会乱，但不是死局；只要找到关键卡点，就有释放空间。',
+    '47-46':'从「困」到「升」，是从受困无路走向慢慢上升。现在的困难不是终点，而是在逼你寻找更扎实的上升路径。',
+    '12-11':'从「否」到「泰」，是从闭塞不通走向重新流通。关键在于打通上下、内外和人与人之间的断层。',
+    '23-24':'从「剥」到「复」，是从被削弱走向重新恢复。先保住根，再谈发展。',
+    '29-40':'从「坎」到「解」，是从反复险阻走向解除压力。最重要的是看清险在哪里，不再重复掉进同一个坑。',
+    '39-40':'从「蹇」到「解」，是从艰难阻路走向阻碍松开。不要硬走，找到帮助和替代路线，事情会轻。',
+    '18-49':'从「蛊」到「革」，是从清理旧问题走向真正变革。只修补不够，可能需要换结构。',
+    '49-50':'从「革」到「鼎」，是从改变旧制走向建立新器。变革之后要把新秩序固定下来。',
+    '5-35':'从「需」到「晋」，是从等待蓄势走向上升被看见。前期耐心准备，后面才有推进。',
+    '52-51':'从「艮」到「震」，是从停止走向被震动启动。停顿不是坏事，但外部变化可能逼你动起来。'
+  };
+  const key=`${a.n}-${b.n}`;
+  if(pairs[key]) return pairs[key];
+  return `从「${a.key}」到「${b.key}」，表示这件事会从“${a.theme}”转向“${b.theme}”。主卦看现在，变卦看趋势；真正要抓的不是吉凶标签，而是这件事从哪一种结构转到哪一种结构。`;
+}
+function actionByTheme(hex){
+  const k=hex.key;
+  if(['屯','蒙','需','蹇','困','坎'].includes(k)) return '先不要急着证明结果。把困难拆小，找支持，先解决最现实的卡点。';
+  if(['泰','晋','升','益','大有','丰'].includes(k)) return '可以顺势推进，但要把成果固定成结构，不要只停在一时顺利。';
+  if(['否','剥','损','遁','艮'].includes(k)) return '先收缩、止损、保核心。现在不适合盲目扩张。';
+  if(['革','鼎','蛊','解','涣'].includes(k)) return '重点是清理旧结构，让堵住的地方重新流动，然后建立新的承载方式。';
+  if(['讼','睽','夬','噬嗑'].includes(k)) return '把事实、边界和规则说清楚。不要让情绪替代判断。';
+  return hex.advice;
+}
+function interpretIChing(){
+  initIChing();
+  const q=(document.getElementById('iching-question').value||'这件事').trim();
+  const main=getHex(document.getElementById('main-hex').value);
+  const changed=getHex(document.getElementById('change-hex').value);
+  const line=document.getElementById('moving-line').value;
+  const lineText=movingLineMeaning(line);
+  const html=`
+    <div class="analysis-card zh">
+      <div class="analysis-step-title">问事：${q}</div>
+      <div class="analysis-body"><strong>主卦：</strong>${main.name}｜${main.theme}<br><strong>变卦：</strong>${changed.name}｜${changed.theme}</div>
+      <div class="iching-section-title">一、当前状态：${main.name}</div>
+      <div class="iching-body">${main.state}</div>
+      <div class="iching-section-title">二、后续走向：${changed.name}</div>
+      <div class="iching-body">${changed.state}</div>
+      <div class="iching-section-title">三、主卦到变卦：核心变化</div>
+      <div class="iching-core iching-body">${changeBridge(main, changed)}</div>
+      ${lineText?`<div class="iching-section-title">四、动爻提示</div><div class="iching-body">${lineText}</div>`:''}
+      <div class="iching-section-title">${lineText?'五':'四'}、行动建议</div>
+      <div class="iching-body">${actionByTheme(changed)}</div>
+      <div class="analysis-note" style="margin-top:1rem">提醒：这个模块是主卦与变卦的趋势解读，适合看当下事情的结构与转向；它不是完整六爻纳甲，也不替代现实判断。</div>
+    </div>`;
+  document.getElementById('iching-result').innerHTML=html;
+  if(currentLang==='en') setLang('en');
+}
+
+initIChing();
 
 
 </script>
