@@ -792,7 +792,7 @@ body:not(.en) .en-fallback-note { display: none !important; }
   </div>
   <div class="logo-zh">命　盘</div>
   <div class="logo-en">Destiny Chart</div>
-  <div class="tagline zh">八字 · 紫微斗数 · 家族剧本 · 事业权威 · 问事解卦</div>
+  <div class="tagline zh">八字 · 紫微斗数 · 家族剧本 · 事业权威 · 问事解卦 V28</div>
   <div class="tagline en" style="display:none">BaZi · Zi Wei Dou Shu · Life Cycles</div>
 </header>
 
@@ -3511,6 +3511,90 @@ function actionByTheme(hex){
   if(['讼','睽','夬','噬嗑'].includes(k)) return '把事实、边界和规则说清楚。不要让情绪替代判断。';
   return hex.advice;
 }
+
+function detectQuestionContext(q){
+  const text=(q||'').toLowerCase();
+  const has=(arr)=>arr.some(w=>text.includes(w.toLowerCase()));
+  if(has(['比赛','竞赛','夺冠','冠军','赢','输','决赛','半决赛','预赛','排名','名次','划船','赛艇','rowing','race','champion','win'])) return 'competition';
+  if(has(['申请','录取','offer','学校','大学','提交','shortlist','面试','奖学金','admission','apply'])) return 'application';
+  if(has(['网站','项目','创业','产品','上线','市场','用户','客户','生意','能不能做起来','app','business','startup'])) return 'project';
+  if(has(['钱','投资','股票','买','卖','收入','赚钱','价格','房子','财务','profit','investment'])) return 'finance';
+  if(has(['关系','感情','喜欢','复合','分手','朋友','夫妻','婚姻','他','她','relationship','love'])) return 'relationship';
+  if(has(['孩子','儿子','女儿','家人','妈妈','爸爸','父母','家庭','小帅','kai','charlie'])) return 'family';
+  if(has(['病','咳嗽','身体','健康','恢复','疼','医院','医生','health','sick'])) return 'health';
+  return 'general';
+}
+function contextLabel(ctx){
+  const m={competition:'比赛/竞争',application:'升学/申请',project:'事业/项目',finance:'财务/资源',relationship:'关系/感情',family:'家庭/孩子',health:'健康/状态',general:'一般问事'};
+  return m[ctx]||m.general;
+}
+function contextualState(hex, ctx, q){
+  if(ctx==='competition'){
+    if(hex.key==='益') return '此卦用于比赛，重点不是单人爆发，而是团队合力、资源增益、临场状态被托起。若问划船或赛艇，益卦尤其重视配合、节奏、互相成就和外部助力。它偏有利于发挥提升，但不是直接“稳赢”的卦。';
+    if(['师','比','同人','泰','晋','升','大壮','大有','丰'].includes(hex.key)) return `此卦用于比赛，显示${hex.theme}的结构。重点在队伍组织、执行节奏和能否把已有实力发挥出来。它偏向有竞争力，但仍要看临场配合与对手强弱。`;
+    if(['坎','蹇','困','讼','睽','剥','艮'].includes(hex.key)) return `此卦用于比赛，说明当前有阻力或不稳定因素。可能是起航节奏、队伍状态、对手压力、赛道条件或心理负担。不是完全没有机会，但不宜轻言稳胜。`;
+    return `此卦用于比赛，当前主题是“${hex.theme}”。要把卦义落到比赛里看：它主要指向团队状态、节奏控制、临场发挥和胜负压力，而不是泛泛的吉凶。`;
+  }
+  if(ctx==='application'){
+    if(hex.key==='益') return '用于申请，益卦表示材料、资源、人脉或外部支持有增强趋势。它有利于补充信息、得到帮助、让申请更完整，但仍要看竞争池和最终审核。';
+    if(['晋','升','泰','大有','同人','观'].includes(hex.key)) return `用于申请，此卦有被看见、向上推进或进入更高评价系统的意味。重点是材料是否清楚、推荐是否有力、审核方是否能看见你的核心价值。`;
+    if(['需','蒙','蹇','困','否'].includes(hex.key)) return `用于申请，此卦提示过程不够顺或信息未明。需要补材料、等消息、找支持，不能只靠焦虑推动。`;
+  }
+  if(ctx==='project'){
+    if(hex.key==='益') return '用于项目/网站，益卦表示有增长、帮助、资源进入和用户理解逐步增强的趋势。它不是一夜爆发，而是靠持续优化、外部反馈和互相成就慢慢打开。';
+    if(['屯','蛊','革','鼎','井','渐'].includes(hex.key)) return `用于项目，此卦说明当前重点是${hex.theme}。项目不是不能做，而是要把定位、结构、内容和用户路径整理清楚。`;
+  }
+  if(ctx==='relationship'){
+    if(hex.key==='益') return '用于关系，益卦表示一方或双方愿意增加付出、帮助和修复。它有利于关系改善，但也要看这种“增加”是不是平衡，而不是一方单方面补偿。';
+    if(['咸','比','同人','家人','中孚','泰'].includes(hex.key)) return `用于关系，此卦强调感应、靠近或信任。重点不是马上定结果，而是看双方是否有真实互动与稳定承诺。`;
+    if(['睽','讼','困','剥','遁'].includes(hex.key)) return `用于关系，此卦显示分歧、距离或受困。需要先看清边界和真实态度，不宜用幻想代替沟通。`;
+  }
+  if(ctx==='finance'){
+    if(hex.key==='益') return '用于财务，益卦有收益、资源增加和互利的象，但它强调流通和合理投入，不是无成本暴利。要看投入回报是否成比例。';
+    if(['大有','丰','泰','升','晋'].includes(hex.key)) return `用于财务，此卦偏向资源上升或可见收益，但仍要把风险、节奏和退出方式想清楚。`;
+    if(['损','剥','困','坎','否'].includes(hex.key)) return `用于财务，此卦提示消耗、风险或流动性受限。先保本金，别被短期情绪带着做决定。`;
+  }
+  if(ctx==='family'){
+    if(hex.key==='益') return '用于家庭/孩子，益卦表示支持、帮助和共同成长。关键不是替孩子用力，而是让资源、鼓励和训练形成正向循环。';
+    if(['家人','师','比','临','升'].includes(hex.key)) return `用于家庭/孩子，此卦强调内部秩序、支持和成长。重点是家庭系统能否稳定托住这件事。`;
+  }
+  if(ctx==='health'){
+    if(hex.key==='益') return '用于健康，益卦偏向补养、恢复和状态增加，但不代表可以忽视现实症状。适合补充能量、调整作息、获得专业帮助。';
+    if(['复','解','井','颐','泰'].includes(hex.key)) return `用于健康，此卦有恢复、疏通或滋养的意味。重点是按步骤调理，不要急于求快。`;
+    if(['坎','困','剥','大过','蹇'].includes(hex.key)) return `用于健康，此卦提示压力、消耗或反复。要谨慎处理，必要时寻求医生判断。`;
+  }
+  return hex.state;
+}
+function contextualTrend(hex, ctx){
+  if(ctx==='competition'){
+    if(hex.key==='益') return '后续仍是益，说明趋势偏稳定地增强。比赛中这代表队伍有机会越划越顺、越配越整，但不是突然翻盘型；如果本来就在强队梯队，就有冲冠军的条件。';
+    if(['解','晋','升','泰','大有','丰','大壮'].includes(hex.key)) return `后续转向${hex.name}，对比赛来说是压力松动、上升推进或力量增强的象。它支持冲好名次，但要靠执行落地。`;
+    if(['坎','蹇','困','否','剥','艮'].includes(hex.key)) return `后续转向${hex.name}，说明后面仍有阻力或不稳定。要特别注意临场节奏、心理压力和外部条件。`;
+  }
+  if(ctx==='project' && hex.key==='益') return '后续仍见益，说明项目不是靠一次性爆发，而是靠持续修正、用户反馈和资源增加慢慢打开。';
+  if(ctx==='application' && hex.key==='益') return '后续仍见益，说明申请过程有补强空间，适合继续增加材料质量、推荐支持和清晰表达。';
+  return hex.state;
+}
+function contextualBridge(a,b,ctx){
+  if(ctx==='competition'){
+    if(a.n===b.n && a.key==='益') return '主变皆为益，说明趋势没有明显反转。对“能不能夺冠”来说，这是偏有利的稳定增益象：队伍状态、互助、配合和资源在增强。但益不是“必胜卦”，更像“有争冠机会，关键看能否把团队力量合成一股”。';
+    if(a.n===b.n) return `主卦和变卦同为${a.name}，说明比赛趋势相对稳定，不是突然反转。要判断名次，就看这个卦所代表的主题能否在临场被执行出来：${a.theme}。`;
+    return `从「${a.key}」到「${b.key}」，放在比赛里看，是从“${a.theme}”转向“${b.theme}”。这不是单纯吉凶，而是比赛状态、队伍配合和胜负压力的变化。`;
+  }
+  return changeBridge(a,b);
+}
+function contextualAdvice(hex, ctx, q){
+  if(ctx==='competition'){
+    if(hex.key==='益') return '结论：有争冠机会，形势偏有利，但不宜说稳冠。不要临时大改策略；保持起航节奏、船员统一、听教练和舵手指令。益卦最怕力量分散，越到关键时刻越要把团队力量合在一起。';
+    if(['师','比','同人'].includes(hex.key)) return '结论：关键在队伍组织和配合。统一节奏、明确分工、减少个人情绪干扰，比单点爆发更重要。';
+    if(['晋','升','大壮','大有','丰'].includes(hex.key)) return '结论：有冲高位的机会。要趁势推进，但不能过猛；稳定发挥比冒险抢节奏更重要。';
+    if(['坎','蹇','困','讼','睽'].includes(hex.key)) return '结论：有明显阻力，不宜判断稳胜。先稳住节奏，减少失误，争取把不利条件转成可控。';
+    return '结论：把卦象落到比赛，就是看节奏、配合、心理和执行。不要只问会不会赢，要看哪一个环节最需要稳定。';
+  }
+  if(ctx==='project' && hex.key==='益') return '结论：项目有增长机会，但要靠持续改版和清晰定位。不要急着扩大宣传，先让用户一眼看懂核心价值。';
+  if(ctx==='application' && hex.key==='益') return '结论：申请有补强空间。继续提高材料质量、增加可信背书，把核心亮点说清楚。';
+  return actionByTheme(hex);
+}
 function interpretIChing(){
   initIChing();
   const q=(document.getElementById('iching-question').value||'这件事').trim();
@@ -3518,20 +3602,21 @@ function interpretIChing(){
   const changed=getHex(document.getElementById('change-hex').value);
   const line=document.getElementById('moving-line').value;
   const lineText=movingLineMeaning(line);
+  const ctx=detectQuestionContext(q);
   const html=`
     <div class="analysis-card zh">
       <div class="analysis-step-title">问事：${q}</div>
-      <div class="analysis-body"><strong>主卦：</strong>${main.name}｜${main.theme}<br><strong>变卦：</strong>${changed.name}｜${changed.theme}</div>
+      <div class="analysis-body"><strong>自动识别：</strong>${contextLabel(ctx)}<br><strong>主卦：</strong>${main.name}｜${main.theme}<br><strong>变卦：</strong>${changed.name}｜${changed.theme}</div>
       <div class="iching-section-title">一、当前状态：${main.name}</div>
-      <div class="iching-body">${main.state}</div>
+      <div class="iching-body">${contextualState(main, ctx, q)}</div>
       <div class="iching-section-title">二、后续走向：${changed.name}</div>
-      <div class="iching-body">${changed.state}</div>
+      <div class="iching-body">${contextualTrend(changed, ctx)}</div>
       <div class="iching-section-title">三、主卦到变卦：核心变化</div>
-      <div class="iching-core iching-body">${changeBridge(main, changed)}</div>
+      <div class="iching-core iching-body">${contextualBridge(main, changed, ctx)}</div>
       ${lineText?`<div class="iching-section-title">四、动爻提示</div><div class="iching-body">${lineText}</div>`:''}
       <div class="iching-section-title">${lineText?'五':'四'}、行动建议</div>
-      <div class="iching-body">${actionByTheme(changed)}</div>
-      <div class="analysis-note" style="margin-top:1rem">提醒：这个模块是主卦与变卦的趋势解读，适合看当下事情的结构与转向；它不是完整六爻纳甲，也不替代现实判断。</div>
+      <div class="iching-body">${contextualAdvice(changed, ctx, q)}</div>
+      <div class="analysis-note" style="margin-top:1rem">提醒：这个模块会先从问题文字识别主题，再解释主卦与变卦。它适合看当下事情的结构与转向；不是完整六爻纳甲，也不替代现实判断。</div>
     </div>`;
   document.getElementById('iching-result').innerHTML=html;
   if(currentLang==='en') setLang('en');
